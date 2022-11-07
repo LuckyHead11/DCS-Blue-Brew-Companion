@@ -1,29 +1,66 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div align="left" class="containejr shadow p-3 mb-5 bg-body rounded">
-        <div class="row">
-            {% for item in items %}
-            <div class="col">
-                <div class="card shadow p-3 mb-5 bg-body rounded" style="width: 18rem;">
-                    <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" width="50%" height="50%">
-                    <div class="card-body">
-                      <h5 class="card-title">{{ item.item_name }}</h5>
-                      <p class="card-text">{{ item.item_description }}</p>
-                      <a href="#" class="btn btn-primary">Add</a>
-                    </div>
-                    <br/>
-                  </div>
+    <div class="row">
+        <div class="col" span=32>
+            <h1>Food</h1>
+            {% if not items %}
+            <div align="center">
+                <h6>Hey! There are no food items here.</h6>
+                <h5>Press the button on the top toolbar to create some!</h5>
+    
             </div>
 
-            {% endfor %}
+            {% endif %}
+            <div align="left" class="containejr shadow p-3 mb-5 bg-body rounded">
+                <div class="row">
+                    {% for item in items %}
+                    <div class="col">
+                        <div class="card shadow p-3 mb-5 bg-body rounded" style="width: 18rem;">
+                            <a href="/add_order/{{ item.id }}">
+                                <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" href="/">
+                            </a>
+                            
+                            <div class="card-body">
+                                <h5 class="card-title">{{ item.item_name }}</h5>
+                                {% if item.item_food %}
+                                    <p class="card-text"><b>FOOD ITEM: </b> {{item.item_description }}</p>
+                                {% else %}
+                                    <p class="card-text"><b>DRINK ITEM: </b> {{item.item_description }}</p>
+                                {% endif %}
+                              <b>Cost: ${{ item.item_price }} </b>
+                            </div>
+                          </div>
+                    </div>
+
+        
+                    {% endfor %}
+                </div>
+        
+            </div>
         </div>
 
+        <div class="col">
+            <h1>Checkout</h1>
+            {% if current_items %}
+                {% for item in current_items %}
+                    <b>
+                        +{{ item.item_name }} Cost Amount: ${{ item.item_price }}
+                    </b>
+                    <br/>
+                {% endfor %}
+            <h4>Total Cost: ${{ cost }}</h4>
+            {% endif %}
+        </div>
+       
     </div>
 
 
 
-    <div class="container-fluid shadow p-3 mb-5 bg-body rounded" align="right" >
+    
 
-    </div>
+
+
+
+
 {% endblock %}
