@@ -1,8 +1,8 @@
 import os
 import shutil
-def get_item_image(name):
+def get_item_image(name, company):
     try:
-        query = f"A photograph of a {name}"
+        query = f"A photograph of {company} {name}"
         """Search a query on google"""
         import requests
         from bs4 import BeautifulSoup
@@ -27,7 +27,7 @@ def get_item_image(name):
                 with open(f"static/{name}/{count}.png", "wb") as f:
                     f.write(r.content)
 
-                if count >= 3:
+                if count >= 5:
                     break
 
         #Pick a random image from the folder and only save that image

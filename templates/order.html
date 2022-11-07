@@ -1,5 +1,29 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    
+    <div align="left" class="containejr shadow p-3 mb-5 bg-body rounded">
+        <div class="row">
+            {% for item in items %}
+            <div class="col">
+                <div class="card shadow p-3 mb-5 bg-body rounded" style="width: 18rem;">
+                    <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" width="50%" height="50%">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ item.item_name }}</h5>
+                      <p class="card-text">{{ item.item_description }}</p>
+                      <a href="#" class="btn btn-primary">Add</a>
+                    </div>
+                    <br/>
+                  </div>
+            </div>
+
+            {% endfor %}
+        </div>
+
+    </div>
+
+
+
+    <div class="container-fluid shadow p-3 mb-5 bg-body rounded" align="right" >
+
+    </div>
 {% endblock %}
