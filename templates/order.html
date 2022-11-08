@@ -44,12 +44,20 @@
             <h1>Checkout</h1>
             {% if current_items %}
                 {% for item in current_items %}
-                    <b>
-                        +{{ item.item_name }} Cost Amount: ${{ item.item_price }}
+                    <b style="color: black">
+                        +{{ item.item_name }}
                     </b>
+
+                    <b style="color: green">
+                        ${{ item.item_price }}
                     <br/>
                 {% endfor %}
-            <h4>Total Cost: ${{ cost }}</h4>
+            <div style="float: left">
+                <h4 >Total Cost: ${{ cost }}</h4>
+            </div>
+            <br/>
+            <br/>
+            <a href="/checkout" type="button" class="btn btn-success">Confirm</a>
             {% endif %}
         </div>
        

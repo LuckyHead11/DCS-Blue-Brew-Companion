@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container shadow p-3 mb-5 bg-body rounded" align="center">
+        {% if not current_items %}
+            <h1 align="center">You have no items in your cart!</h1>
+            <h3 align="center">Please add items to your cart before checking out.</h3>
+        {% else %}
+            <h1 align="center">Confirm your order. </h1>
+            <br />
+            <h2 align="center">Items</h3>
+            {% for item in current_items %}
+                <div align="center">
+                    <h4>{{ item.item_name }} - <z style="color: green;"">${{ item.item_price }}</z></h4>
+                </div>
+                
+            {% endfor %}
+
+            <h2 align="center">Total Cost: <z style="color: green;">${{ cost }}</z></h2>
+
+
+            <a type="button" class="btn btn-primary" href="/new-order">Start a new Order</a>
+            <br />
+            <h6> --or-- </h6>
+            <a type="button" class="btn btn-primary" href="/">Go Home</a>
+        {% endif %}
+    </div>
+
+{% endblock %}

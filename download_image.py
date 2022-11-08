@@ -34,7 +34,7 @@ def get_item_image(name, company):
         import random
 
         random_image = random.choice(os.listdir(f"static/{name}"))
-        os.rename(f"static/{name}/{random_image}", f"static/{name}/choose.png")
+        os.rename(f"images/{name}/{random_image}", f"static/{name}/choose.png")
         
     except:
         pass

@@ -2,8 +2,48 @@
 
 {% block content %}
     <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
-        <h3>Welcome Worker!</h3>
+        <h3>Welcome Worker! 🧑</h3>
         <h4>Click on the button below to start somebodys order!</h2>
         <a type="button" class="btn btn-primary" role="button" href="/order">Start Order</a>
+    
+
+
+
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <h3>Food or Drinks</h3>
+        <a type="button" class="btn btn-primary" role="button" href="/new_item">Add Food</a>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.item_name }}</td>
+                        <td>{{ item.item_price }}</td>
+                        {% if item.item_food == 0 %}
+                            <td>Drink</td>
+                        {% else %}
+                            <td>Food</td>
+                        {% endif %}
+                        <td>
+                            <a type="button" class="btn btn-primary" role="button" href="/edit_item/{{ item.id }}">Edit</a>
+                            <a type="button" class="btn btn-danger" role="button" href="/remove_item/{{ item.id }}">Remove</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
     </div>
 {% endblock %}
