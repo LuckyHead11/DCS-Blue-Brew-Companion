@@ -4,7 +4,7 @@ import time
 
 
 
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, flash
 from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
@@ -52,6 +52,7 @@ def get_item_image(name, company):
 
 app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
+app.config["SECRET_KEY"] = "The Blue brew is better than any other Coffee Shop in the world"
 
 
 db= SQLAlchemy(app)
@@ -105,6 +106,25 @@ def new_order():
 @app.route('/new_item')
 def new_item():
     return render_template('new_item.html')
+
+@app.route('/edit_item/<id>')
+def edit_item(id):
+    item = Item.query.filter_by(id=id).first()
+    return render_template('new_item.html', item=item)
+
+@app.route('/confirm-edit', methods=['POST'])
+def confirm_edit():
+    item_name = request.form.get('item_name')
+    item_description = request.form.get('item_description')
+    item_price = request.form.get('item_price').replace("$", "")
+    item = Item.query.filter_by(item_name=item_name).first()
+    item.item_description = item_description
+    item.item_price = item_price
+    flash("Successfully edited the item!")
+    db.session.commit()
+
+    print(f"Successfully edited item! Item Name: {item_name} Item Description: {item_description} Item Price: {item_price}")
+    return redirect('/')
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("404.html"), 404
@@ -128,6 +148,9 @@ def add():
     get_item_image(item_name, item_description)
     db.session.add(item)
     db.session.commit()
+
+
+    flash("Successfully added the item!")
     return redirect('/')
 
 @app.route('/add_order/<id>')
@@ -140,6 +163,7 @@ def add_order(id):
 
 @app.route('/remove_item/<id>')
 def delete(id):
+    flash("Successfully removed the item!")
     item = Item.query.filter_by(id=id).first()
     
 

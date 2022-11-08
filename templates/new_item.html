@@ -5,6 +5,7 @@
 
 {% block content %}
     <div class="container shadow p-3 mb-5 bg-body rounded">
+        {% if not item %}
         <form action="/add" method="POST">
             <h2 align="center">
                 Create a New Item.
@@ -26,7 +27,7 @@
                 <label for="floatingInput" >Description</label>
             </div>
             <div class="form-floating">
-                <input type="text" class="form-control" id="floatingInput" placeholder="$.50" name="item_price">
+                <input type="text" class="form-control" id="floatingInput" placeholder="$.50" name="item_price" value="">
                 <label for="floatingInput" >Price</label>
             </div>
             <br />
@@ -41,6 +42,39 @@
             
             <button align="center" type="submit" class="btn btn-primary">Submit</button>
         </form>
+        {% else %}
+        <form action="/confirm-edit" method="POST">
+            <h2 align="center">
+                Edit Item
+            </h2>
+            <br />
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_name" value="{{ item.item_name }}">
+                <label for="floatingInput" >Name</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_company" value="{{ item.item_company }}">
+                <label for="floatingInput" >Company</label>
+            </div>
+
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_description" value="{{item.item_description}}">
+                <label for="floatingInput" >Description</label>
+            </div>
+            <div class="form-floating">
+                <input type="text" class="form-control" id="floatingInput" placeholder="$.50" name="item_price" value="{{item.item_price}}">
+                <label for="floatingInput" >Price</label>
+            </div>
+            <br />
+            
+            <button align="center" type="submit" class="btn btn-primary">Submit Changes</button>
+
+
+        
+        </form>
+        {% endif %}
     </div>
     
 {% endblock %}
