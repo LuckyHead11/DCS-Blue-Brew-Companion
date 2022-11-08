@@ -86,7 +86,6 @@ def create_database(app):
 @app.route("/checkout")
 def checkout():
     cost = 0
-    items = Item.query.all()
     for item in current_items:
         cost += float(str(item.item_price).replace("$", ""))
     return render_template("checkout.html", current_items=current_items, cost=str(cost))
@@ -99,6 +98,12 @@ def order():
         cost += float(str(item.item_price).replace("$", ""))
     print(cost)
     return render_template('order.html', items=items, current_items=current_items,cost=cost)
+
+@app.route("/new-database")
+def new_database():
+    db.drop_all()
+    db.create_all()
+    return redirect("/")
 @app.route('/new-order')
 def new_order():
     current_items.clear()
@@ -120,6 +125,7 @@ def confirm_edit():
     item = Item.query.filter_by(item_name=item_name).first()
     item.item_description = item_description
     item.item_price = item_price
+    item.item_name = item_name
     flash("Successfully edited the item!")
     db.session.commit()
 
@@ -127,6 +133,7 @@ def confirm_edit():
     return redirect('/')
 @app.errorhandler(404)
 def page_not_found(e):
+    flash("Page not found!", category="error")
     return render_template("404.html"), 404
 
 

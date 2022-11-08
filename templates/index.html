@@ -22,6 +22,7 @@
                 <thead>
                     <tr>
                         <th scope="col">Name</th>
+                        <th scope="col">Description</th>
                         <th scope="col">Price</th>
                         <th scope="col">Type</th>
                     </tr>
@@ -30,7 +31,8 @@
                     {% for item in items %}
                         <tr>
                             <td>{{ item.item_name }}</td>
-                            <td>{{ item.item_price }}</td>
+                            <td>{{ item.item_description }}</td>
+                            <td>${{ item.item_price }}</td>
                             {% if item.item_food == 0 %}
                                 <td>Drink</td>
                             {% else %}
