@@ -1,7 +1,10 @@
+#Made Happily with Github Copilot
+#For the Blue Brew Coffee Shop
+#Made by: Joshua Kirby
+#Date of creation 11/2/2022
+
 import time
-
-
-
+import datetime
 
 
 from flask import Flask, render_template, redirect, request, flash
@@ -70,11 +73,28 @@ class Item(db.Model):
 
 
 
+class LogData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    log_name = db.Column(db.String(100), nullable=False)
+    log_description = db.Column(db.String(255), nullable=False)
+    log_severity = db.Column(db.String(100), nullable=False)
+    log_date = db.Column(db.DateTime, default=datetime.datetime.now)
+
+
+
+def create_log_data(name, description, severity):
+    log = LogData(log_name=name, log_description=description, log_severity=severity)
+    print("Successfully created log data! (NOTE ONLY FOR ADMINS!)")
+    db.session.add(log)
+    db.session.commit()
+
+
 
 @app.route('/')
 def index():
-    items = Item.query.all()
-    return render_template('index.html', items=items)
+    create_log_data("New Order", "A new order has been created!", "Low")
+    
+    return render_template('index.html')
 
 def create_database(app):
     if not path.exists("instance/" + "site.db"):
@@ -88,6 +108,7 @@ def checkout():
     cost = 0
     for item in current_items:
         cost += float(str(item.item_price).replace("$", ""))
+    cost = '{:,.2f}'.format(cost)
     return render_template("checkout.html", current_items=current_items, cost=str(cost))
 
 @app.route('/order')
@@ -95,8 +116,9 @@ def order():
     cost = 0
     items = Item.query.all()
     for item in current_items:
+        item.item_price = item.item_price.replace("$", "").replace(",", "")
         cost += float(str(item.item_price).replace("$", ""))
-    print(cost)
+    cost = '{:,.2f}'.format(cost)
     return render_template('order.html', items=items, current_items=current_items,cost=cost)
 
 @app.route("/new-database")
@@ -117,6 +139,11 @@ def edit_item(id):
     item = Item.query.filter_by(id=id).first()
     return render_template('new_item.html', item=item)
 
+@app.route('/clear-admin')
+def clear_admin():
+    #Remove all the LogData items from the database
+    LogData.query.delete()
+    db.session.commit()
 @app.route('/confirm-edit', methods=['POST'])
 def confirm_edit():
     item_name = request.form.get('item_name')
@@ -136,13 +163,21 @@ def page_not_found(e):
     flash("Page not found!", category="error")
     return render_template("404.html"), 404
 
+@app.route("/admin-login", methods=['GET', 'POST'])
+def admin_login():
+    return render_template("admin_login.html")
 
-
+@app.route('/admin')
+def admin():
+    #Get all the log data from the database
+    log_data = LogData.query.all()
+    items = Item.query.all()
+    return render_template("admin.html", log_data = log_data, items=items)
 @app.route('/add',methods=['POST'])
 def add():
     item_name = request.form.get('item_name')
     item_description = request.form.get('item_description')
-    item_price = request.form.get('item_price').replace("$", "")
+    item_price = str('{:,.2f}'.format(float(request.form.get('item_price').replace("$", ""))))
     item_food = request.form.get('item_food')
     if item_food == "on":
         item_food = True
@@ -152,7 +187,6 @@ def add():
 
     print(f"Item Name: {item_name} Item Description: {item_description} Item Price: {item_price}")
 
-    get_item_image(item_name, item_description)
     db.session.add(item)
     db.session.commit()
 
@@ -166,7 +200,20 @@ def add_order(id):
     current_items.append(item)
     return redirect('/order')
 
+@app.route('/admin/login', methods=['POST'])
+def admin_login_post():
+    email = request.form.get('email')
+    password = request.form.get('password')
 
+    if email == "jreynolds@decaturchristian.net":
+        if password == "bluebrew2022":
+            return redirect("/admin")
+        else:
+            flash("Incorrect password!", category="error")
+            return redirect("/admin-login")
+    else:
+        flash("Incorrect email!", category="error")
+        return redirect("/admin-login")
 
 @app.route('/remove_item/<id>')
 def delete(id):
@@ -176,9 +223,6 @@ def delete(id):
 
 
     #remove the folder
-
-    import shutil
-    shutil.rmtree(f"static/{item.item_name}")
     print(f"SUCCESSFULLY REMOVED {item.item_name}")
     db.session.delete(item)
     db.session.commit()
@@ -191,4 +235,4 @@ if __name__ == '__main__':
 
 
 
-#pyinstaller -F --add-data "templates;templates" --add-data "static;static" --name BlueBrewCompanion app.py
+#pyinstaller -F --add-data "templates;templates" --add-data "static;static" --name BlueBrewCompanion main.py

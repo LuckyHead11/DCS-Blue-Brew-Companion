@@ -17,9 +17,9 @@
                     {% for item in items %}
                     <div class="col">
                         <div class="card shadow p-3 mb-5 bg-body rounded" style="width: 18rem;">
-                            <a href="/add_order/{{ item.id }}">
+                            <!-- <a href="/add_order/{{ item.id }}">
                                 <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" href="/">
-                            </a>
+                            </a> -->
                             
                             <div class="card-body">
                                 <h5 class="card-title">{{ item.item_name }}</h5>
@@ -29,6 +29,8 @@
                                     <p class="card-text"><b>DRINK ITEM: </b> {{item.item_description }}</p>
                                 {% endif %}
                               <b>Cost: ${{ item.item_price }} </b>
+                              <br/>
+                              <a type="button" class="btn btn-primary" href="/add_order/{{ item.id }}">Add</a>
                             </div>
                           </div>
                     </div>
