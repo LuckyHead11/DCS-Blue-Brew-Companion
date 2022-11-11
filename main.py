@@ -7,9 +7,15 @@ import time
 import datetime
 
 
-from flask import Flask, render_template, redirect, request, flash
+from flask import Flask, render_template, redirect, request, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from flask_session import Session
+
+
 app = Flask(__name__)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 import os
 from os import path
@@ -81,6 +87,18 @@ class LogData(db.Model):
     log_date = db.Column(db.DateTime, default=datetime.datetime.now)
 
 
+def check_admin():
+    is_admin = session.get("admin")
+    if is_admin:
+
+        print("Successfully logged in as admin!")
+        return True
+    else:
+        flash("You are not logged in as an admin!", category="error")
+
+        return False
+
+
 
 def create_log_data(name, description, severity):
     log = LogData(log_name=name, log_description=description, log_severity=severity)
@@ -92,7 +110,6 @@ def create_log_data(name, description, severity):
 
 @app.route('/')
 def index():
-    create_log_data("New Order", "A new order has been created!", "Low")
     
     return render_template('index.html')
 
@@ -169,10 +186,11 @@ def admin_login():
 
 @app.route('/admin')
 def admin():
-    #Get all the log data from the database
-    log_data = LogData.query.all()
-    items = Item.query.all()
-    return render_template("admin.html", log_data = log_data, items=items)
+
+    
+    if check_admin():  return render_template('admin.html')
+    else: return redirect("/admin-login")
+    
 @app.route('/add',methods=['POST'])
 def add():
     item_name = request.form.get('item_name')
@@ -207,6 +225,10 @@ def admin_login_post():
 
     if email == "jreynolds@decaturchristian.net":
         if password == "bluebrew2022":
+            print("Successfully logged in as admin!")
+            
+            session["admin"] = True
+            flash("Successfully authenticated user as an admin!")
             return redirect("/admin")
         else:
             flash("Incorrect password!", category="error")
@@ -227,6 +249,23 @@ def delete(id):
     db.session.delete(item)
     db.session.commit()
     return redirect('/')
+
+
+
+@app.route("/admin_food")
+def admin_food():
+    items = Item.query.all()
+    if check_admin(): return render_template("admin_food.html", items=items)
+    else: return redirect("/admin-login")
+
+
+
+
+@app.route("/admin_logdata")
+def admin_logdata():
+    log_data = LogData.query.all()
+    if check_admin(): return render_template("admin_logdata.html", log_data=log_data)
+    else: return render_template("admin_login.html")
 if __name__ == '__main__':
     create_database(app)
     app.run(host="0.0.0.0", port=5000)
