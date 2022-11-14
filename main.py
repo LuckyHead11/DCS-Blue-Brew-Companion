@@ -356,18 +356,28 @@ def tendered():
 
 @app.route("/confirm_tender", methods=['POST'])
 def confirm_tender():
-    tendered = str(request.form.get('tendered'))
-    o_tendered = tendered
-    tendered = tendered.replace("$", "")
-    tendered = float(tendered)
-    cost = 0
-    for item in current_items:
-        cost += float(item.item_price.replace("$", ""))
-    
-    change = tendered - cost
-    change = '{:,.2f}'.format(change) 
-    cost = '{:,.2f}'.format(cost)
-    return render_template("confirm_tender.html", change=change, tendered=o_tendered, total=str(cost))
+    try:
+        tendered = str(request.form.get('tendered'))
+        o_tendered = tendered
+        tendered = tendered.replace("$", "")
+        tendered = float(tendered)
+        cost = 0
+        for item in current_items:
+            cost += float(item.item_price.replace("$", ""))
+        
+        change = tendered - cost
+        change = '{:,.2f}'.format(change) 
+        cost = '{:,.2f}'.format(cost)
+        o_tendered = '{:,.2f}'.format(float(o_tendered.replace("$", "")))
+
+        if float(change) < 0:
+            flash("Not enough money tendered! Must be higher than: $" + str(cost), category="error")
+            return redirect("/tendered")
+        else:
+            return render_template("confirm_tender.html", change=change, tendered=o_tendered, total=str(cost))
+    except:
+        flash("Invalid input!", category="error")
+        return redirect("/tendered")
 
 @app.route('/remove_item/<id>')
 def delete(id):

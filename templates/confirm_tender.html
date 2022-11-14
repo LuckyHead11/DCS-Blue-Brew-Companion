@@ -3,9 +3,11 @@
 {% block content %}
 <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
     <h1>Tender</h1>
-    <h2>Total Cost: <z style="color: green">${{ total }}</z></h2>
-    <h2>Tendered Amount: <z style="color: green">${{ tendered }}</z></h2>
-    <h2>Change Due: <z style="color: green">${{ change }}</z></h2>
+    <h2>Change Due: <b style="color: green">${{ change }}</b></h2>
+    <br/>
+    <h3>Total Cost: <z style="color: green">${{ total }}</z></h2>
+    <h3>Tendered Amount: <z style="color: green">${{ tendered }}</z></h2>
+    <br />
 
     <a type="button" class="btn btn-primary" href="/new-order">Start a new Order</a>
     <br />
