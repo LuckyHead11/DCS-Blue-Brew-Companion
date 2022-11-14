@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
+    <h1 align="center"><bold>Tender</bold></h1>
+    <form action="/confirm_tender"class="form-floating" method="POST">
+        <input type="text" class="form-control" id="floatingInputValue" placeholder="$5.00" name="tendered">
+        <label for="floatingInputValue">Tendered Amount</label>
+        <br/>
+
+        <button align="center" type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+
+{% endblock %}

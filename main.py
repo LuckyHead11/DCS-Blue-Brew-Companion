@@ -3,6 +3,50 @@
 #Made by: Joshua Kirby
 #Date of creation 11/2/2022
 
+import base64
+
+
+
+
+exe_file = False
+if exe_file:
+    print("Welcome to Blue Brew Companion!")
+    print("You have 2 options")
+    print("1. Run the program as usual")
+    print("2. Change admin password")
+
+
+    while True:
+        option = int(input("Enter option: "))
+        if option == 1:
+            exe_file = False
+            break
+        elif option == 2:
+            #Read from secret/password.txt
+            with open("secret/password.txt", "rb") as f:
+                password = f.read()
+            current_password = str(base64.b64decode(password).decode("utf-8"))
+            current_password_check = input("Please enter your old password: ")
+            if current_password_check == current_password:
+                new_password = input("Please enter your new password: ")
+                new_password_check = input("Please re-enter your new password: ")
+                if new_password == new_password_check:
+                    #Write to secret/password.txt
+                    with open("secret/password.txt", "wb") as f:
+                        f.write(base64.b64encode(new_password.encode("utf-8")))
+                    print("Successfully changed password!")
+                    break
+                else:
+                    print("Passwords do not match!")
+            else:
+                print("Password is incorrect!")
+
+
+
+
+
+
+
 import time
 import datetime
 
@@ -19,6 +63,14 @@ Session(app)
 
 import os
 from os import path
+
+
+
+admin_password = ""
+
+with open("secret/password.txt", "rb") as f:
+    password = f.read()
+admin_password = str(base64.b64decode(password).decode("utf-8"))
 def get_item_image(name, company):
     try:
         query = f"A photograph of {company} {name}"
@@ -86,6 +138,12 @@ class LogData(db.Model):
     log_severity = db.Column(db.String(100), nullable=False)
     log_date = db.Column(db.DateTime, default=datetime.datetime.now)
 
+class ItemOrdered(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_price = db.Column(db.String(100), nullable=False)
+    item_day = db.Column(db.Integer)
+    item_month = db.Column(db.Integer)
+    item_year = db.Column(db.Integer)
 
 def check_admin():
     is_admin = session.get("admin")
@@ -101,6 +159,13 @@ def check_admin():
 
 
 def create_log_data(name, description, severity):
+
+    if severity == 0:
+        severity = "Low"
+    elif severity == 1:
+        severity = "Medium"
+    elif severity == 2:
+        severity = "Severe"
     log = LogData(log_name=name, log_description=description, log_severity=severity)
     print("Successfully created log data! (NOTE ONLY FOR ADMINS!)")
     db.session.add(log)
@@ -123,18 +188,31 @@ def create_database(app):
 @app.route("/checkout")
 def checkout():
     cost = 0
+    items = 0
     for item in current_items:
         cost += float(str(item.item_price).replace("$", ""))
+        items += 1
+
+        #Create item ordred data
+        item_ordered = ItemOrdered(item_price=item.item_price, item_day=datetime.datetime.now().day, item_month=datetime.datetime.now().month, item_year=datetime.datetime.now().year)
+        db.session.add(item_ordered)
+        db.session.commit()
     cost = '{:,.2f}'.format(cost)
+
+    create_log_data("Checkout", f"Person checked out with {str(items)} items", 0)
     return render_template("checkout.html", current_items=current_items, cost=str(cost))
 
 @app.route('/order')
 def order():
     cost = 0
     items = Item.query.all()
+    #remove all the items fro mthe items list
+
     for item in current_items:
         item.item_price = item.item_price.replace("$", "").replace(",", "")
         cost += float(str(item.item_price).replace("$", ""))
+        
+
     cost = '{:,.2f}'.format(cost)
     return render_template('order.html', items=items, current_items=current_items,cost=cost)
 
@@ -166,6 +244,14 @@ def confirm_edit():
     item_name = request.form.get('item_name')
     item_description = request.form.get('item_description')
     item_price = request.form.get('item_price').replace("$", "")
+
+    if item_price != "":
+        
+        item_price = '{:,.2f}'.format(float(item_price))
+    else:
+        flash("Cannot have an empty price! So we put it as $0.00", category="error")
+        item_price = float("0.00")
+
     item = Item.query.filter_by(item_name=item_name).first()
     item.item_description = item_description
     item.item_price = item_price
@@ -174,7 +260,8 @@ def confirm_edit():
     db.session.commit()
 
     print(f"Successfully edited item! Item Name: {item_name} Item Description: {item_description} Item Price: {item_price}")
-    return redirect('/')
+    create_log_data(f"Edited Item: {item_name}", f"Successfully edited item!", 1)
+    return redirect('/admin_food')
 @app.errorhandler(404)
 def page_not_found(e):
     flash("Page not found!", category="error")
@@ -195,23 +282,48 @@ def admin():
 def add():
     item_name = request.form.get('item_name')
     item_description = request.form.get('item_description')
-    item_price = str('{:,.2f}'.format(float(request.form.get('item_price').replace("$", ""))))
-    item_food = request.form.get('item_food')
-    if item_food == "on":
-        item_food = True
-    else:
-        item_food = False
-    item = Item(item_name=item_name, item_description=item_description, item_price=item_price, item_food=item_food)
+    
 
-    print(f"Item Name: {item_name} Item Description: {item_description} Item Price: {item_price}")
+    try:
+        if request.form.get('item_price') != "":
+            item_price = str('{:,.2f}'.format(float(request.form.get('item_price').replace("$", ""))))
+            item_food = request.form.get('item_food')
 
-    db.session.add(item)
-    db.session.commit()
+            if item_price != None or item_name != "" or item_description != "":
+                if item_food == "on":
+                    item_food = True
+                else:
+                    item_food = False
+                item = Item(item_name=item_name, item_description=item_description, item_price=item_price, item_food=item_food)
+
+                print(f"Item Name: {item_name} Item Description: {item_description} Item Price: {item_price}")
+
+                if item_food:
+                    item_food = "snack"
+                else:
+                    item_food = "drink"
+                create_log_data(name="Created: " + item_name, description=f"This is a {item_food}", severity=0)
+                db.session.add(item)
+                db.session.commit()
 
 
-    flash("Successfully added the item!")
-    return redirect('/')
-
+                flash("Successfully added the item!")
+                return redirect('/')
+            else:
+                flash("Please fill in all the fields!", category="error")
+                return redirect('/new_item')
+        else:
+            flash("Make sure to fill in the price!", category="error")
+            return redirect('/new_item')
+    except:
+        flash("Critical Error!", category="error")
+        return redirect('/new_item')
+    
+@app.route("/clear_order")
+def clear_order():
+    current_items.clear()
+    flash("Successfully cleared the order!" , category="success")
+    return redirect("/order")
 @app.route('/add_order/<id>')
 def add_order(id):
     item = Item.query.filter_by(id=id).first()
@@ -220,15 +332,16 @@ def add_order(id):
 
 @app.route('/admin/login', methods=['POST'])
 def admin_login_post():
-    email = request.form.get('email')
+    email = request.form.get ('email')
     password = request.form.get('password')
 
     if email == "jreynolds@decaturchristian.net":
-        if password == "bluebrew2022":
+        if password == admin_password:
             print("Successfully logged in as admin!")
             
             session["admin"] = True
             flash("Successfully authenticated user as an admin!")
+            create_log_data("Admin Login", "Somebody has logged in under admin", 2)
             return redirect("/admin")
         else:
             flash("Incorrect password!", category="error")
@@ -236,6 +349,25 @@ def admin_login_post():
     else:
         flash("Incorrect email!", category="error")
         return redirect("/admin-login")
+
+@app.route("/tendered")
+def tendered():
+    return render_template("tendered.html")
+
+@app.route("/confirm_tender", methods=['POST'])
+def confirm_tender():
+    tendered = str(request.form.get('tendered'))
+    o_tendered = tendered
+    tendered = tendered.replace("$", "")
+    tendered = float(tendered)
+    cost = 0
+    for item in current_items:
+        cost += float(item.item_price.replace("$", ""))
+    
+    change = tendered - cost
+    change = '{:,.2f}'.format(change) 
+    cost = '{:,.2f}'.format(cost)
+    return render_template("confirm_tender.html", change=change, tendered=o_tendered, total=str(cost))
 
 @app.route('/remove_item/<id>')
 def delete(id):
@@ -246,9 +378,11 @@ def delete(id):
 
     #remove the folder
     print(f"SUCCESSFULLY REMOVED {item.item_name}")
+
+    create_log_data("Removed: " + item.item_name, "Successfully removed item!", 2)
     db.session.delete(item)
     db.session.commit()
-    return redirect('/')
+    return redirect('/admin_food')
 
 
 
@@ -259,8 +393,40 @@ def admin_food():
     else: return redirect("/admin-login")
 
 
+@app.route('/delete-log/<id>')
+def delete_log(id):
+    flash("Successfully removed the log!", category="success")
+    log = LogData.query.filter_by(id=id).first()
+    
 
 
+    #remove the folder
+    print(f"SUCCESSFULLY REMOVED {log}")
+    db.session.delete(log)
+    db.session.commit()
+    return redirect('/admin_logdata')
+
+
+@app.route('/admin_earnings')
+def admin_earnings():
+    monthly_earnings = 0
+    daily_earnings = 0
+    yearly_earings = 0
+    items = ItemOrdered.query.all()
+    for item in items:
+        if item.item_month == datetime.datetime.now().month:
+            monthly_earnings += float(item.item_price)
+        if item.item_day == datetime.datetime.now().day:
+            daily_earnings += float(item.item_price)
+        if item.item_year == datetime.datetime.now().year:
+            yearly_earings += float(item.item_price)
+
+    #Make all the earnings into formatted money strings
+    monthly_earnings = str('{:,.2f}'.format(monthly_earnings))
+    daily_earnings = str('{:,.2f}'.format(daily_earnings))
+    yearly_earings = str('{:,.2f}'.format(yearly_earings))
+    if check_admin(): return render_template("admin_earnings.html", me=monthly_earnings, de=daily_earnings, ye=yearly_earings)
+    else: return redirect("/admin-login")
 @app.route("/admin_logdata")
 def admin_logdata():
     log_data = LogData.query.all()

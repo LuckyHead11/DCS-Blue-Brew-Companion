@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    
+<div align="center" class="container">
+
+    <img src="static/images/blue_brew_logo.png" alt="Blue Brew Logo" width=230 height=127>
+    <br />
+    <h1>Admin Page</h1>
+    <h4>Total Earnings</h4>
+
+        <h2>Yearly Earnings: <bold style="color: green">${{ ye }}</bold></h2>
+        <h2>Monthy Earnings: <bold style="color: green">${{ me }}</bold></h2>
+        <h2>Daily Earnings: <bold style="color: green">${{ de }}</bold></h>
+
+</div>
+
+
+{% endblock %}

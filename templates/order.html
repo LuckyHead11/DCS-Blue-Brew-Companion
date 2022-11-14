@@ -15,22 +15,16 @@
             <div align="left" class="containejr shadow p-3 mb-5 bg-body rounded">
                 <div class="row">
                     {% for item in items %}
-                    <div class="col">
+                    <div class="col sm-6">
                         <div class="card shadow p-3 mb-5 bg-body rounded" style="width: 18rem;">
                             <!-- <a href="/add_order/{{ item.id }}">
                                 <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" href="/">
                             </a> -->
                             
                             <div class="card-body">
-                                <h5 class="card-title">{{ item.item_name }}</h5>
-                                {% if item.item_food %}
-                                    <p class="card-text"><b>FOOD ITEM: </b> {{item.item_description }}</p>
-                                {% else %}
-                                    <p class="card-text"><b>DRINK ITEM: </b> {{item.item_description }}</p>
-                                {% endif %}
-                              <b>Cost: ${{ item.item_price }} </b>
-                              <br/>
-                              <a type="button" class="btn btn-primary" href="/add_order/{{ item.id }}">Add</a>
+                                <h6 class="card-text">{{ item.item_name }}  </h6> 
+                                    <a type="button" class="btn btn-primary btn-sm" href="/add_order/{{ item.id }}">Add</a> 
+
                             </div>
                           </div>
                     </div>
@@ -52,7 +46,8 @@
 
                     <b style="color: green">
                         ${{ item.item_price }}
-                    <br/>
+                    <b/>
+                    <br />
                 {% endfor %}
             <div style="float: left">
                 <h4 >Total Cost: ${{ cost }}</h4>
@@ -60,6 +55,7 @@
             <br/>
             <br/>
             <a href="/checkout" type="button" class="btn btn-success">Confirm</a>
+            <a href="/clear_order" type="button" class="btn btn-danger">Clear Order</a>
             {% endif %}
         </div>
        

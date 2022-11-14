@@ -4,13 +4,57 @@
 {% block content %}
     
 <div align="center" class="container">
+    <img src="static/images/blue_brew_logo.png" alt="Blue Brew Logo" width=230 height=127>
     <h1>Admin Page</h1>
 
 
 
 
     <h4>Look at recent purchases</h4>
+    
+    <h3 style="color: green">Low Severity - Nothing to worry about, for example creating an item, or completing somebodys order</h3>
+    <h3 style="color: rgb(146, 124, 0)">Medium Severity - Something to keep in mind, liked editing items.</h3>
+    <h3 style="color: red">Severe Severity - Signing in to the admin panel, deleting items.</h3>
+
+    <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Serverity</th>
+                    <th scope="col">Date Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in log_data %}
+                    <tr>
+                        <td>{{ log.log_name }}</td>
+                        <td>{{ log.log_description }}</td>
+                        {% if log.log_severity == 'Low' %}
+                            <td style="color: green">{{ log.log_severity }}</td>\
+                        {% endif %}
+                        {% if log.log_severity == 'Medium' %}
+                            <td style="color: rgb(146, 124, 0)">{{ log.log_severity }}</td>\
+                        {% endif %}
+                        {% if log.log_severity == 'Severe' %}
+                            <td style="color: red">{{ log.log_severity }}</td>\
+                        {% endif %}
+                        <td>{{ log.log_date }}</td>
+
+
+                        <td>
+                            <a aria-disabled=true role="button" class="btn btn-danger" href="delete-log/{{ log.id }}">
+                                Remove
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+
+
 </div>
 
 
