@@ -3,7 +3,7 @@
 {% block content %}
     <div class="row">
         <div class="col" span=32>
-            <h1>Food</h1>
+            <h1>Snacks</h1>
             {% if not items %}
             <div align="center">
                 <h6>Hey! There are no food items here.</h6>
@@ -12,27 +12,61 @@
             </div>
 
             {% endif %}
-            <div align="left" class="containejr shadow p-3 mb-5 bg-body rounded">
+            <div align="left" class="container shadow p-3 mb-5 bg-body rounded">
+                
                 <div class="row">
                     {% for item in items %}
-                    <div class="col sm-6">
-                        <div class="card shadow p-3 mb-5 bg-body rounded" style="width: 18rem;">
-                            <!-- <a href="/add_order/{{ item.id }}">
-                                <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" href="/">
-                            </a> -->
+                        {% if item.item_food == True %}
+
+                            <div class="col sm-6">
+                                <div class="card" style="width: 18rem;">
+                                    <!-- <a href="/add_order/{{ item.id }}">
+                                        <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" href="/">
+                                    </a> -->
+                                    
+                                    <div class="card-body">
+                                        <h6 class="card-text">{{ item.item_name }}  <a type="button" class="btn btn-primary btn-sm fluid" href="/add_order/{{ item.id }}">Add</a>  </h6> 
+                                    </div>
+                                </div>
                             
-                            <div class="card-body">
-                                <h6 class="card-text">{{ item.item_name }}  </h6> 
-                                    <a type="button" class="btn btn-primary btn-sm" href="/add_order/{{ item.id }}">Add</a> 
-
                             </div>
-                          </div>
-                    </div>
+                        {% endif %}
+                        
+                    {% endfor %}
 
         
-                    {% endfor %}
+                
                 </div>
+            </div>
+        </div>
+
+        <div class="col" span=32>
+            <h1>Drinks</h1>
+            <div align="left" class="container shadow p-3 mb-5 bg-body rounded">
+                
+                <div class="row">
+                    {% for item in items %}
+                        {% if item.item_food == False %}
+
+                            <div class="col sm-6">
+                                <div class="card" style="width: 18rem;">
+                                    <!-- <a href="/add_order/{{ item.id }}">
+                                        <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" href="/">
+                                    </a> -->
+                                    
+                                    <div class="card-body">
+                                        <h6 class="card-text">{{ item.item_name }}  <a type="button" class="btn btn-primary btn-sm fluid" href="/add_order/{{ item.id }}">Add</a>  </h6> 
+                                    </div>
+                                </div>
+                            
+                            </div>
+                        {% endif %}
+                        
+                    {% endfor %}
+
         
+                
+                </div>
             </div>
         </div>
 
