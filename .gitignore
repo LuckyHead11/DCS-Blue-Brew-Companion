@@ -1,2 +1,5 @@
 venv/
 secret/
+instance/site.db
+.idea/
+.git/

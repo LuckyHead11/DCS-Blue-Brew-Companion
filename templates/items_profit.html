@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    
+<div align="center" class="container">
+    <img src="static/images/blue_brew_logo.png" alt="Blue Brew Logo" width=230 height=127>
+    <h1>Admin Page</h1>
+
+    <h4>Items Profited</h4>
+    <br/>
+    <a align="center" type="button" class="btn btn-primary" href="/items_profit_reverse"> Make it reversed (Least To Most)</a>
+    <br/>
+    <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Money Made</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item[0] }}</td>
+                        <td style="color: green" ><b>${{ item[1] }}<b/></td>
+
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+</div>
+
+
+{% endblock %}
