@@ -120,6 +120,7 @@ class Item(db.Model):
     item_description = db.Column(db.String(255), nullable=False)
     item_price = db.Column(db.String(100), nullable=False)
     item_food = db.Column(db.Boolean, nullable=False, default=False)
+    item_percent_off = db.Columb(db.String(100), nullable=False)
 
 
 class LogData(db.Model):
@@ -197,6 +198,8 @@ def checkout():
 
     total_cost = 0
     for item in current_items:
+        discount = item.item_percent_off
+        item_price = round((discount)-100 * float(item_price))
         total_cost += float(str(item.item_price).replace("$", ""))
 
     total_cost = '{:,.2f}'.format(total_cost)
@@ -253,6 +256,7 @@ def confirm_edit():
     item_name = request.form.get('item_name')
     item_description = request.form.get('item_description')
     item_price = request.form.get('item_price').replace("$", "")
+    item_percent_off = request.form.get('item_percent_off').replace("%","")
 
     if item_price != "":
 
@@ -265,6 +269,7 @@ def confirm_edit():
     item.item_description = item_description
     item.item_price = item_price
     item.item_name = item_name
+    item.item_percent_off = item_percent_off
     flash("Successfully edited the item!")
     db.session.commit()
 
@@ -312,7 +317,7 @@ def add():
                 else:
                     item_food = False
                 item = Item(item_name=item_name, item_description=item_description,
-                            item_price=item_price, item_food=item_food)
+                            item_price=item_price, item_food=item_food, item_percent_off="0")
 
                 print(
                     f"Item Name: {item_name} Item Description: {item_description} Item Price: {item_price}")
@@ -536,20 +541,30 @@ def admin_earnings():
         items_bought.append(item.item_name)
 
     #Find the one that sold the most by counting the amount of times it was in the list
-    most_bought_name = max(items_bought, key=items_bought.count)
-    most_bought = items_bought.count(most_bought_name)
+    try:
+        most_bought_name = max(items_bought, key=items_bought.count)
+        most_bought = items_bought.count(most_bought_name)
 
-    #Find the one that sold the least by counting the amount of times it was in the list
-    least_bought_name = min(items_bought, key=items_bought.count)
-    least_bought = items_bought.count(least_bought_name)
+        #Find the one that sold the least by counting the amount of times it was in the list
+        least_bought_name = min(items_bought, key=items_bought.count)
+        least_bought = items_bought.count(least_bought_name)
 
-    most_bought_profit = 0
-    least_bought_profit = 0
-    for item in items:
-        if item.item_name == most_bought_name:
-            most_bought_profit += float(item.item_price)
-        if item.item_name == least_bought_name:
-            least_bought_profit += float(item.item_price)
+        most_bought_profit = 0
+        least_bought_profit = 0
+        for item in items:
+            if item.item_name == most_bought_name:
+                most_bought_profit += float(item.item_price)
+            if item.item_name == least_bought_name:
+                least_bought_profit += float(item.item_price)
+    except:
+        most_bought_name = "No items bought!"
+        least_bought_name = "No items bought!"
+
+        most_bought = 0
+        least_bought = 0
+
+        most_bought_profit = 0
+        least_bought_profit = 0
 
     # Make all the earnings into formatted money strings
     monthly_earnings = str('{:,.2f}'.format(monthly_earnings))
