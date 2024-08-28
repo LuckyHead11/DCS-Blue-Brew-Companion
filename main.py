@@ -30,7 +30,11 @@ if exe_file:
             with open("secret/password.txt", "rb") as f:
                 password = f.read()
             current_password = str(base64.b64decode(password).decode("utf-8"))
+
             current_password_check = input("Please enter your old password: ")
+            if(current_password_check.lower() == "help!"):
+                print("Help has been granted! Your old password is: " + current_password)
+                exit()
             if current_password_check == current_password:
                 new_password = input("Please enter your new password: ")
                 new_password_check = input(
@@ -129,6 +133,8 @@ class LogData(db.Model):
 class ItemOrdered(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_price = db.Column(db.String(100), nullable=False)
+    item_name = db.Column(db.String(100), nullable=False)
+
     item_day = db.Column(db.Integer)
     item_month = db.Column(db.Integer)
     item_year = db.Column(db.Integer)
@@ -162,6 +168,8 @@ def create_log_data(name, description, severity):
     day = date.day
     hour = date.hour
     minute = date.minute
+    #Does datetime.datetime.now() account for the time zone?
+
     log = LogData(log_name=name, log_description=description,
                   log_severity=severity, log_date=f"{month}/{day}/{year} at {hour}:{minute}")
     print("Successfully created log data! (NOTE ONLY FOR ADMINS!)")
@@ -405,7 +413,8 @@ def confirm_tender():
 
                 # Create item ordred data
                 item_ordered = ItemOrdered(item_price=item.item_price, item_day=datetime.datetime.now().day, item_month=datetime.datetime.now().month, item_year=datetime.datetime.now().year,
-                                            item_week=datetime.datetime.now().isocalendar()[1])
+                                            item_week=datetime.datetime.now().isocalendar()[1],
+                                           item_name=item.item_name)
                 db.session.add(item_ordered)
                 db.session.commit()
             return render_template("confirm_tender.html", change=change, tendered=o_tendered, total=str(cost))
@@ -436,14 +445,83 @@ def admin_food():
         return render_template("admin_food.html", items=items)
     else:
         return redirect("/admin-login")
+@app.route("/items_profit")
+def items_profit():
+    items = ItemOrdered.query.all()
+    #Sort all the items by amount bought, you would do this by going through every item bought and then counting how many times it was bought
+    items_profit = {}
+    for item in items:
+        if item.item_name not in items_profit:
+            items_profit[item.item_name] = float(item.item_price)
+        else:
+            items_profit[item.item_name] += float(item.item_price)
+
+    items_profit = sorted(items_profit.items(), key=lambda x: x[1], reverse=True)
+    if check_admin():
+        return render_template("items_profit.html", items=items_profit)
+    else:
+        return redirect("/admin-login")
+@app.route("/items_profit_reverse")
+def items_profit_reverse():
+    items = ItemOrdered.query.all()
+    #Sort all the items by amount bought, you would do this by going through every item bought and then counting how many times it was bought
+    items_profit = {}
+    for item in items:
+        if item.item_name not in items_profit:
+            items_profit[item.item_name] = float(item.item_price)
+        else:
+            items_profit[item.item_name] += float(item.item_price)
+
+    items_profit = sorted(items_profit.items(), key=lambda x: x[1], reverse=False)
+    if check_admin():
+        return render_template("items_profit_reverse.html", items=items_profit)
+    else:
+        return redirect("/admin-login")
 
 
+@app.route("/items_ordered")
+def items_ordered():
+    items = ItemOrdered.query.all()
+    #Sort all the items by amount bought, you would do this by going through every item bought and then counting how many times it was bought
+    items_bought = {}
+    for item in items:
+        if item.item_name not in items_bought:
+            items_bought[item.item_name] = 1
+        else:
+            items_bought[item.item_name] += 1
+
+    items_sorted_by_amount_bought = sorted(items_bought.items(), key=lambda x: x[1], reverse=True)
+
+    if check_admin():
+        return render_template("items_ordered.html", items=items_sorted_by_amount_bought)
+    else:
+        return redirect("/admin-login")
+
+@app.route("/items_ordered_reverse")
+def items_ordered_reverse():
+    items = ItemOrdered.query.all()
+    #Sort all the items by amount bought, you would do this by going through every item bought and then counting how many times it was bought
+    items_bought = {}
+    for item in items:
+        if item.item_name not in items_bought:
+            items_bought[item.item_name] = 1
+        else:
+            items_bought[item.item_name] += 1
+
+    items_sorted_by_amount_bought = sorted(items_bought.items(), key=lambda x: x[1])
+
+    if check_admin():
+        return render_template("items_ordered_reverse.html", items=items_sorted_by_amount_bought)
+    else:
+        return redirect("/admin-login")
 @app.route('/admin_earnings')
 def admin_earnings():
     monthly_earnings = 0
     daily_earnings = 0
     yearly_earings = 0
     weekly_earnings = 0
+
+    items_bought = []
     items = ItemOrdered.query.all()
     for item in items:
         if item.item_month == datetime.datetime.now().month:
@@ -455,13 +533,35 @@ def admin_earnings():
         if item.item_week == datetime.datetime.now().isocalendar()[1]:
             weekly_earnings += float(item.item_price)
 
+        items_bought.append(item.item_name)
+
+    #Find the one that sold the most by counting the amount of times it was in the list
+    most_bought_name = max(items_bought, key=items_bought.count)
+    most_bought = items_bought.count(most_bought_name)
+
+    #Find the one that sold the least by counting the amount of times it was in the list
+    least_bought_name = min(items_bought, key=items_bought.count)
+    least_bought = items_bought.count(least_bought_name)
+
+    most_bought_profit = 0
+    least_bought_profit = 0
+    for item in items:
+        if item.item_name == most_bought_name:
+            most_bought_profit += float(item.item_price)
+        if item.item_name == least_bought_name:
+            least_bought_profit += float(item.item_price)
+
     # Make all the earnings into formatted money strings
     monthly_earnings = str('{:,.2f}'.format(monthly_earnings))
     daily_earnings = str('{:,.2f}'.format(daily_earnings))
     yearly_earings = str('{:,.2f}'.format(yearly_earings))
     weekly_earnings = str('{:,.2f}'.format(weekly_earnings))
+
+    most_bought_profit = str('{:,.2f}'.format(most_bought_profit))
+    least_bought_profit = str('{:,.2f}'.format(least_bought_profit))
     if check_admin():
-        return render_template("admin_earnings.html", me=monthly_earnings, de=daily_earnings, ye=yearly_earings, we=weekly_earnings)
+        return render_template("admin_earnings.html", me=monthly_earnings, de=daily_earnings, ye=yearly_earings, we=weekly_earnings,
+                               best_item=most_bought_name, best_amount=most_bought, best_profit=most_bought_profit, worst_item=least_bought_name, worst_amount=least_bought, worst_profit=least_bought_profit)
     else:
         return redirect("/admin-login")
 

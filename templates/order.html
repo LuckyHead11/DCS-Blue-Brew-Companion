@@ -12,23 +12,20 @@
             </div>
 
             {% endif %}
-            <div align="left" class="container shadow p-3 mb-5 bg-body rounded">
+            <div align="left" class="container shadow p-3 mb-5 bg-body rounded", >
                 
                 <div class="row">
                     {% for item in items %}
                         {% if item.item_food == True %}
 
                             <div class="col sm-6">
-                                <div class="card" style="width: 18rem;">
-                                    <!-- <a href="/add_order/{{ item.id }}">
-                                        <img src="static/{{ item.item_name }}/choose.png" class="card-img-top" alt="{{ item.item_name }}" href="/">
-                                    </a> -->
-                                    
+                                <div class="card" style="width: 15rem; margin-bottom: 1rem;">
                                     <div class="card-body">
-                                        <h6 class="card-text">{{ item.item_name }}  <a type="button" class="btn btn-primary btn-sm fluid" href="/add_order/{{ item.id }}">Add</a>  </h6> 
+                                        <h6 class="card-text">{{ item.item_name }}
+                                            <a type="button" class="btn btn-primary btn-sm fluid" href="/add_order/{{ item.id }}">Add</a>
+                                        </h6>
                                     </div>
                                 </div>
-                            
                             </div>
                         {% endif %}
                         

@@ -10,10 +10,9 @@
 
 
 
-    <h4>Look at recent purchases</h4>
     
     <h3 style="color: green">Low Severity - Nothing to worry about, for example creating an item, or completing somebodys order</h3>
-    <h3 style="color: rgb(146, 124, 0)">Medium Severity - Something to keep in mind, liked editing items.</h3>
+    <h3 style="color: rgb(146, 124, 0)">Medium Severity - Something to keep in mind, like editing items.</h3>
     <h3 style="color: red">Severe Severity - Signing in to the admin panel, deleting items.</h3>
 
     <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
@@ -32,13 +31,13 @@
                         <td>{{ log.log_name }}</td>
                         <td>{{ log.log_description }}</td>
                         {% if log.log_severity == 'Low' %}
-                            <td style="color: green">{{ log.log_severity }}</td>\
+                            <td style="color: green">{{ log.log_severity }}</td>
                         {% endif %}
                         {% if log.log_severity == 'Medium' %}
-                            <td style="color: rgb(146, 124, 0)">{{ log.log_severity }}</td>\
+                            <td style="color: rgb(146, 124, 0)">{{ log.log_severity }}</td>
                         {% endif %}
                         {% if log.log_severity == 'Severe' %}
-                            <td style="color: red">{{ log.log_severity }}</td>\
+                            <td style="color: red">{{ log.log_severity }}</td>
                         {% endif %}
                         <td>{{ log.log_date }}</td>
 
