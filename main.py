@@ -12,7 +12,6 @@ import datetime
 import time
 import base64
 
-
 exe_file = False
 if exe_file:
     print("Welcome to Blue Brew Companion!")
@@ -32,7 +31,7 @@ if exe_file:
             current_password = str(base64.b64decode(password).decode("utf-8"))
 
             current_password_check = input("Please enter your old password: ")
-            if(current_password_check.lower() == "help!"):
+            if (current_password_check.lower() == "help!"):
                 print("Help has been granted! Your old password is: " + current_password)
                 exit()
             if current_password_check == current_password:
@@ -50,18 +49,23 @@ if exe_file:
             else:
                 print("Password is incorrect!")
 
-
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
-
 
 admin_password = ""
 
 with open("secret/password.txt", "rb") as f:
     password = f.read()
 admin_password = str(base64.b64decode(password).decode("utf-8"))
+
+
+def price_to_float(price):
+    new_price = price.replace("$", "")
+    new_price = new_price.replace(",", "")
+    new_price = new_price.replace(".", "")
+    return float(new_price)
 
 
 def get_item_image(name, company):
@@ -108,7 +112,6 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
 app.config["SECRET_KEY"] = "The Blue brew is better than any other Coffee Shop in the world"
 
-
 db = SQLAlchemy(app)
 current_items = []
 cost = 0
@@ -120,7 +123,7 @@ class Item(db.Model):
     item_description = db.Column(db.String(255), nullable=False)
     item_price = db.Column(db.String(100), nullable=False)
     item_food = db.Column(db.Boolean, nullable=False, default=False)
-    item_percent_off = db.Columb(db.String(100), nullable=False)
+    item_percent_off = db.Column(db.String(100), nullable=False)
 
 
 class LogData(db.Model):
@@ -155,7 +158,6 @@ def check_admin():
 
 
 def create_log_data(name, description, severity):
-
     if severity == 0:
         severity = "Low"
     elif severity == 1:
@@ -180,7 +182,6 @@ def create_log_data(name, description, severity):
 
 @app.route('/')
 def index():
-
     return render_template('index.html')
 
 
@@ -195,11 +196,8 @@ def create_database(app):
 
 @app.route("/checkout")
 def checkout():
-
     total_cost = 0
     for item in current_items:
-        discount = item.item_percent_off
-        item_price = round((discount)-100 * float(item_price))
         total_cost += float(str(item.item_price).replace("$", ""))
 
     total_cost = '{:,.2f}'.format(total_cost)
@@ -210,9 +208,11 @@ def checkout():
 def order():
     cost = 0
     items = Item.query.all()
-    # remove all the items fro mthe items list
 
     for item in current_items:
+        #Now discount the item price by the percent off
+
+
         item.item_price = item.item_price.replace("$", "").replace(",", "")
         cost += float(str(item.item_price).replace("$", ""))
 
@@ -256,20 +256,30 @@ def confirm_edit():
     item_name = request.form.get('item_name')
     item_description = request.form.get('item_description')
     item_price = request.form.get('item_price').replace("$", "")
-    item_percent_off = request.form.get('item_percent_off').replace("%","")
+    item_percent_off = request.form.get('item_percent_off').replace("%", "")
 
     if item_price != "":
-
-        item_price = '{:,.2f}'.format(float(item_price))
+        item_price = '{:,.2f}'.format(float(price_to_float(item_price)))
     else:
         flash("Cannot have an empty price! So we put it as $0.00", category="error")
         item_price = float("0.00")
-
+    if item_percent_off != "":
+        item_percent_off = float(item_percent_off)
+    else:
+        flash("Cannot have an empty discount! So we put it as 0%", category="error")
+        item_percent_off = float("0.00")
     item = Item.query.filter_by(item_name=item_name).first()
     item.item_description = item_description
     item.item_price = item_price
     item.item_name = item_name
+    if item.item_percent_off != item_percent_off:
+        discount = float(str(item_percent_off).replace("%", ""))
+        item.item_price = item.item_price.replace("$", "").replace(",", "").replace(".", "")
+        price = float(item.item_price)
+        item.item_price = str(price + (price * (item.item_percent_off / 100)))
+        item.item_price = str(price - (price * (discount / 100)))
     item.item_percent_off = item_percent_off
+
     flash("Successfully edited the item!")
     db.session.commit()
 
@@ -293,7 +303,6 @@ def admin_login():
 
 @app.route('/admin')
 def admin():
-
     if check_admin():
         return render_template('admin.html')
     else:
@@ -402,14 +411,14 @@ def confirm_tender():
             cost += float(item.item_price.replace("$", ""))
 
         change = tendered - cost
-        
+
         cost = '{:,.2f}'.format(cost)
         o_tendered = '{:,.2f}'.format(float(o_tendered.replace("$", "")))
 
         total_cost = 0
         if change < 0:
             flash("Not enough money tendered! Must be higher than: $" +
-                    str(cost), category="error")
+                  str(cost), category="error")
             return redirect("/tendered")
         else:
             change = '{:,.2f}'.format(change)
@@ -417,8 +426,10 @@ def confirm_tender():
                 total_cost += float(str(item.item_price).replace("$", ""))
 
                 # Create item ordred data
-                item_ordered = ItemOrdered(item_price=item.item_price, item_day=datetime.datetime.now().day, item_month=datetime.datetime.now().month, item_year=datetime.datetime.now().year,
-                                            item_week=datetime.datetime.now().isocalendar()[1],
+                item_ordered = ItemOrdered(item_price=item.item_price, item_day=datetime.datetime.now().day,
+                                           item_month=datetime.datetime.now().month,
+                                           item_year=datetime.datetime.now().year,
+                                           item_week=datetime.datetime.now().isocalendar()[1],
                                            item_name=item.item_name)
                 db.session.add(item_ordered)
                 db.session.commit()
@@ -450,6 +461,8 @@ def admin_food():
         return render_template("admin_food.html", items=items)
     else:
         return redirect("/admin-login")
+
+
 @app.route("/items_profit")
 def items_profit():
     items = ItemOrdered.query.all()
@@ -466,6 +479,8 @@ def items_profit():
         return render_template("items_profit.html", items=items_profit)
     else:
         return redirect("/admin-login")
+
+
 @app.route("/items_profit_reverse")
 def items_profit_reverse():
     items = ItemOrdered.query.all()
@@ -502,6 +517,7 @@ def items_ordered():
     else:
         return redirect("/admin-login")
 
+
 @app.route("/items_ordered_reverse")
 def items_ordered_reverse():
     items = ItemOrdered.query.all()
@@ -519,6 +535,8 @@ def items_ordered_reverse():
         return render_template("items_ordered_reverse.html", items=items_sorted_by_amount_bought)
     else:
         return redirect("/admin-login")
+
+
 @app.route('/admin_earnings')
 def admin_earnings():
     monthly_earnings = 0
@@ -575,8 +593,11 @@ def admin_earnings():
     most_bought_profit = str('{:,.2f}'.format(most_bought_profit))
     least_bought_profit = str('{:,.2f}'.format(least_bought_profit))
     if check_admin():
-        return render_template("admin_earnings.html", me=monthly_earnings, de=daily_earnings, ye=yearly_earings, we=weekly_earnings,
-                               best_item=most_bought_name, best_amount=most_bought, best_profit=most_bought_profit, worst_item=least_bought_name, worst_amount=least_bought, worst_profit=least_bought_profit)
+        return render_template("admin_earnings.html", me=monthly_earnings, de=daily_earnings, ye=yearly_earings,
+                               we=weekly_earnings,
+                               best_item=most_bought_name, best_amount=most_bought, best_profit=most_bought_profit,
+                               worst_item=least_bought_name, worst_amount=least_bought,
+                               worst_profit=least_bought_profit)
     else:
         return redirect("/admin-login")
 
@@ -597,6 +618,5 @@ def admin_logdata():
 if __name__ == '__main__':
     create_database(app)
     app.run(host="0.0.0.0", port=5000)
-
 
 # pyinstaller -F --add-data "templates;templates" --add-data "static;static" --name BlueBrewCompanion main.py
