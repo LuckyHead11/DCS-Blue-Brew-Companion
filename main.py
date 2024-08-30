@@ -11,8 +11,9 @@ from flask import Flask, render_template, redirect, request, flash, session
 import datetime
 import time
 import base64
-
-
+import paramiko
+import threading
+import random
 exe_file = False
 if exe_file:
     print("Welcome to Blue Brew Companion!")
@@ -32,7 +33,7 @@ if exe_file:
             current_password = str(base64.b64decode(password).decode("utf-8"))
 
             current_password_check = input("Please enter your old password: ")
-            if(current_password_check.lower() == "help!"):
+            if (current_password_check.lower() == "help!"):
                 print("Help has been granted! Your old password is: " + current_password)
                 exit()
             if current_password_check == current_password:
@@ -50,19 +51,46 @@ if exe_file:
             else:
                 print("Password is incorrect!")
 
-
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
-
 
 admin_password = ""
 
 with open("secret/password.txt", "rb") as f:
     password = f.read()
 admin_password = str(base64.b64decode(password).decode("utf-8"))
+inspirational_quotes = [
+    "The only way to do great work is to love what you do. - Steve Jobs",
+    "The best way to predict the future is to invent it. - Alan Kay",
+    "Success is not the key to happiness. Happiness is the key to success. - Albert Schweitzer",
+    "Believe you can and you're halfway there. - Theodore Roosevelt",
+    "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
+    "The only limit to our realization of tomorrow is our doubts of today. - Franklin D. Roosevelt",
+    "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
+    "You miss 100% of the shots you don't take. - Wayne Gretzky",
+    "It does not matter how slowly you go as long as you do not stop. - Confucius",
+    "The only way to achieve the impossible is to believe it is possible. - Charles Kingsleigh",
+    "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+    "The harder you work for something, the greater you'll feel when you achieve it. - Unknown",
+    "Dream big and dare to fail. - Norman Vaughan",
+    "Don't be pushed around by the fears in your mind. Be led by the dreams in your heart. - Roy T. Bennett",
+    "Act as if what you do makes a difference. It does. - William James",
+    "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
+    "What you get by achieving your goals is not as important as what you become by achieving your goals. - Zig Ziglar",
+    "The only place where success comes before work is in the dictionary. - Vidal Sassoon",
+    "Don't be afraid to give up the good to go for the great. - John D. Rockefeller",
+    "I find that the harder I work, the more luck I seem to have. - Thomas Jefferson",
+    "Success usually comes to those who are too busy to be looking for it. - Henry David Thoreau",
+    "Opportunities don't happen. You create them. - Chris Grosser",
+    "Don't limit your challenges. Challenge your limits. - Unknown",
+    "The only way to do great work is to love what you do. - Steve Jobs",
+    "The best revenge is massive success. - Frank Sinatra"
+]
 
+def get_qod():
+    return random.choice(inspirational_quotes)
 
 def get_item_image(name, company):
     try:
@@ -108,7 +136,6 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
 app.config["SECRET_KEY"] = "The Blue brew is better than any other Coffee Shop in the world"
 
-
 db = SQLAlchemy(app)
 current_items = []
 cost = 0
@@ -141,6 +168,43 @@ class ItemOrdered(db.Model):
     item_week = db.Column(db.Integer)
 
 
+def upload_database_to_server():
+
+    sftp_host = '50.20.249.5'
+    sftp_username = 'root'
+    sftp_password = '04090409qwerT'
+    remote_directory = '/root/BBC/database-backups/'
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    # Connect to the server
+    ssh.connect(sftp_host, username=sftp_username, password=sftp_password)
+    print("Connection successfully established ... ")
+
+    # Create an SFTP session
+    sftp = ssh.open_sftp()
+
+    sftp.chdir(remote_directory)
+    print(f"Changed to remote directory: {remote_directory}")
+
+    print("Uploading file to the server... this may take a while depending on the size of the database.")
+    local_file_path = os.path.join(os.getcwd(), 'instance/site.db')
+    sftp.put(local_file_path, os.path.join(remote_directory, 'site.db'))
+    print(f"File {local_file_path} uploaded successfully to {remote_directory}")
+
+    remote_filename = f'Backup-{datetime.datetime.now().strftime("%Y-%m-%d")}.db'
+    try:
+        sftp.rename(os.path.join(remote_directory, 'site.db'), os.path.join(remote_directory, remote_filename))
+    except IOError:
+        print("File already exists!")
+    print(f"File renamed to {remote_filename}")
+
+    sftp.close()
+    print("Redirecting...")
+    return redirect("/admin")
+
+
 def check_admin():
     is_admin = session.get("admin")
     if is_admin:
@@ -154,7 +218,6 @@ def check_admin():
 
 
 def create_log_data(name, description, severity):
-
     if severity == 0:
         severity = "Low"
     elif severity == 1:
@@ -179,8 +242,8 @@ def create_log_data(name, description, severity):
 
 @app.route('/')
 def index():
-
-    return render_template('index.html')
+    qod = get_qod()
+    return render_template('index.html',qod=qod)
 
 
 def create_database(app):
@@ -194,7 +257,6 @@ def create_database(app):
 
 @app.route("/checkout")
 def checkout():
-
     total_cost = 0
     for item in current_items:
         total_cost += float(str(item.item_price).replace("$", ""))
@@ -240,6 +302,43 @@ def edit_item(id):
     item = Item.query.filter_by(id=id).first()
     return render_template('new_item.html', item=item)
 
+@app.route('/review_item/<id>')
+def review_item(id):
+    item = Item.query.filter_by(id=id).first()
+    item_ordered = ItemOrdered.query.all()
+    #Get the item name, description, and price
+    name = item.item_name
+    description = item.item_description
+    price = item.item_price
+    #Get the yearly, monthly, weekly, and daily earnings for that specific item
+    ye = 0
+    me = 0
+    we = 0
+    de = 0
+
+    amount_bought = 0
+    for item_ordered in item_ordered:
+        if item_ordered.item_name == name:
+            if item_ordered.item_day == datetime.datetime.now().day:
+                de += float(str(item_ordered.item_price).replace("$", "").replace(",", ""))
+            if item_ordered.item_week == datetime.datetime.now().isocalendar()[1]:
+                we += float(str(item_ordered.item_price).replace("$", "").replace(",", ""))
+            if item_ordered.item_month == datetime.datetime.now().month:
+                me += float(str(item_ordered.item_price).replace("$", "").replace(",", ""))
+            if item_ordered.item_year == datetime.datetime.now().year:
+                ye += float(str(item_ordered.item_price).replace("$", "").replace(",", ""))
+
+            amount_bought += 1
+    me = str('{:,.2f}'.format(me))
+    de = str('{:,.2f}'.format(de))
+    ye = str('{:,.2f}'.format(ye))
+    we = str('{:,.2f}'.format(we))
+
+
+    profit = amount_bought * float(str(price).replace("$", "").replace(",", ""))
+    profit = '{:,.2f}'.format(profit)
+    return render_template('review_item.html', name=name, description=description,
+                           price=price, ye=ye, me=me, we=we, de=de, profit=profit, amount_bought=amount_bought)
 
 @app.route('/clear-admin')
 def clear_admin():
@@ -252,7 +351,7 @@ def clear_admin():
 def confirm_edit():
     item_name = request.form.get('item_name')
     item_description = request.form.get('item_description')
-    item_price = request.form.get('item_price').replace("$", "")
+    item_price = request.form.get('item_price').replace("$", "").replace(",", "")
 
     if item_price != "":
 
@@ -288,7 +387,18 @@ def admin_login():
 
 @app.route('/admin')
 def admin():
+    if check_admin():
+        return render_template('admin.html')
+    else:
+        return redirect("/admin-login")
 
+def redirect_from_thread(url):
+    return redirect(url)
+@app.route('/database_backup')
+def database_backup():
+    upload_database_to_server()
+
+    flash("Database backup finished!", category="success")
     if check_admin():
         return render_template('admin.html')
     else:
@@ -397,14 +507,14 @@ def confirm_tender():
             cost += float(item.item_price.replace("$", ""))
 
         change = tendered - cost
-        
+
         cost = '{:,.2f}'.format(cost)
         o_tendered = '{:,.2f}'.format(float(o_tendered.replace("$", "")))
 
         total_cost = 0
         if change < 0:
             flash("Not enough money tendered! Must be higher than: $" +
-                    str(cost), category="error")
+                  str(cost), category="error")
             return redirect("/tendered")
         else:
             change = '{:,.2f}'.format(change)
@@ -412,8 +522,10 @@ def confirm_tender():
                 total_cost += float(str(item.item_price).replace("$", ""))
 
                 # Create item ordred data
-                item_ordered = ItemOrdered(item_price=item.item_price, item_day=datetime.datetime.now().day, item_month=datetime.datetime.now().month, item_year=datetime.datetime.now().year,
-                                            item_week=datetime.datetime.now().isocalendar()[1],
+                item_ordered = ItemOrdered(item_price=item.item_price, item_day=datetime.datetime.now().day,
+                                           item_month=datetime.datetime.now().month,
+                                           item_year=datetime.datetime.now().year,
+                                           item_week=datetime.datetime.now().isocalendar()[1],
                                            item_name=item.item_name)
                 db.session.add(item_ordered)
                 db.session.commit()
@@ -445,6 +557,8 @@ def admin_food():
         return render_template("admin_food.html", items=items)
     else:
         return redirect("/admin-login")
+
+
 @app.route("/items_profit")
 def items_profit():
     items = ItemOrdered.query.all()
@@ -461,6 +575,8 @@ def items_profit():
         return render_template("items_profit.html", items=items_profit)
     else:
         return redirect("/admin-login")
+
+
 @app.route("/items_profit_reverse")
 def items_profit_reverse():
     items = ItemOrdered.query.all()
@@ -497,6 +613,7 @@ def items_ordered():
     else:
         return redirect("/admin-login")
 
+
 @app.route("/items_ordered_reverse")
 def items_ordered_reverse():
     items = ItemOrdered.query.all()
@@ -514,6 +631,8 @@ def items_ordered_reverse():
         return render_template("items_ordered_reverse.html", items=items_sorted_by_amount_bought)
     else:
         return redirect("/admin-login")
+
+
 @app.route('/admin_earnings')
 def admin_earnings():
     monthly_earnings = 0
@@ -560,8 +679,11 @@ def admin_earnings():
     most_bought_profit = str('{:,.2f}'.format(most_bought_profit))
     least_bought_profit = str('{:,.2f}'.format(least_bought_profit))
     if check_admin():
-        return render_template("admin_earnings.html", me=monthly_earnings, de=daily_earnings, ye=yearly_earings, we=weekly_earnings,
-                               best_item=most_bought_name, best_amount=most_bought, best_profit=most_bought_profit, worst_item=least_bought_name, worst_amount=least_bought, worst_profit=least_bought_profit)
+        return render_template("admin_earnings.html", me=monthly_earnings, de=daily_earnings, ye=yearly_earings,
+                               we=weekly_earnings,
+                               best_item=most_bought_name, best_amount=most_bought, best_profit=most_bought_profit,
+                               worst_item=least_bought_name, worst_amount=least_bought,
+                               worst_profit=least_bought_profit)
     else:
         return redirect("/admin-login")
 
@@ -582,6 +704,5 @@ def admin_logdata():
 if __name__ == '__main__':
     create_database(app)
     app.run(host="0.0.0.0", port=5000)
-
 
 # pyinstaller -F --add-data "templates;templates" --add-data "static;static" --name BlueBrewCompanion main.py

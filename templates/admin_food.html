@@ -19,6 +19,7 @@
                     <th scope="col">Description</th>
                     <th scope="col">Price</th>
                     <th scope="col">Type</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,6 +35,7 @@
                         {% endif %}
                         <td>
                             <a type="button" class="btn btn-primary" role="button" href="/edit_item/{{ item.id }}">Edit</a>
+                            <a type="button" class="btn btn-primary" role="button" href="/review_item/{{ item.id }}">Review</a>
                             <a type="button" class="btn btn-danger" role="button" href="/remove_item/{{ item.id }}">Remove</a>
                         </td>
                     </tr>
