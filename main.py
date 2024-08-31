@@ -9,10 +9,8 @@ from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, render_template, redirect, request, flash, session
 import datetime
-import time
 import base64
 import paramiko
-import threading
 import random
 exe_file = False
 if exe_file:
@@ -73,7 +71,6 @@ inspirational_quotes = [
     "It does not matter how slowly you go as long as you do not stop. - Confucius",
     "The only way to achieve the impossible is to believe it is possible. - Charles Kingsleigh",
     "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
-    "The harder you work for something, the greater you'll feel when you achieve it. - Unknown",
     "Dream big and dare to fail. - Norman Vaughan",
     "Don't be pushed around by the fears in your mind. Be led by the dreams in your heart. - Roy T. Bennett",
     "Act as if what you do makes a difference. It does. - William James",
@@ -84,7 +81,6 @@ inspirational_quotes = [
     "I find that the harder I work, the more luck I seem to have. - Thomas Jefferson",
     "Success usually comes to those who are too busy to be looking for it. - Henry David Thoreau",
     "Opportunities don't happen. You create them. - Chris Grosser",
-    "Don't limit your challenges. Challenge your limits. - Unknown",
     "The only way to do great work is to love what you do. - Steve Jobs",
     "The best revenge is massive success. - Frank Sinatra"
 ]
@@ -131,7 +127,7 @@ def get_item_image(name, company):
     except:
         pass
 
-
+get_item_image("Banana", "Walmart")
 app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
 app.config["SECRET_KEY"] = "The Blue brew is better than any other Coffee Shop in the world"
@@ -225,12 +221,16 @@ def create_log_data(name, description, severity):
     elif severity == 2:
         severity = "Severe"
     # Only have the year, month, day, and week
-    date = datetime.datetime.now()
-    year = date.year
-    month = date.month
-    day = date.day
-    hour = date.hour
-    minute = date.minute
+    #Get the time in the right format
+
+    now = datetime.datetime.now()
+    year = now.strftime("%Y")
+    month = now.strftime("%m")
+    day = now.strftime("%d")
+    hour = now.strftime("%H")
+    minute = now.strftime("%M")
+
+
     #Does datetime.datetime.now() account for the time zone?
 
     log = LogData(log_name=name, log_description=description,
@@ -269,7 +269,6 @@ def checkout():
 def order():
     cost = 0
     items = Item.query.all()
-    # remove all the items fro mthe items list
 
     for item in current_items:
         item.item_price = item.item_price.replace("$", "").replace(",", "")
@@ -452,13 +451,13 @@ def add():
 @app.route("/clear_order")
 def clear_order():
     current_items.clear()
-    flash("Successfully cleared the order!", category="success")
     return redirect("/order")
 
 
 @app.route('/add_order/<id>')
 def add_order(id):
     item = Item.query.filter_by(id=id).first()
+
     current_items.append(item)
     return redirect('/order')
 
@@ -499,9 +498,10 @@ def tendered():
 def confirm_tender():
     try:
         tendered = str(request.form.get('tendered'))
-        o_tendered = tendered
-        tendered = tendered.replace("$", "")
-        tendered = float(tendered)
+
+        tendered = tendered.replace("$", "").replace(",", "")
+        tendered = float(tendered.replace(",", ""))
+
         cost = 0
         for item in current_items:
             cost += float(item.item_price.replace("$", ""))
@@ -509,6 +509,7 @@ def confirm_tender():
         change = tendered - cost
 
         cost = '{:,.2f}'.format(cost)
+        o_tendered = str(tendered)
         o_tendered = '{:,.2f}'.format(float(o_tendered.replace("$", "")))
 
         total_cost = 0
@@ -530,7 +531,8 @@ def confirm_tender():
                 db.session.add(item_ordered)
                 db.session.commit()
             return render_template("confirm_tender.html", change=change, tendered=o_tendered, total=str(cost))
-    except:
+    except Exception as e:
+        print(e.with_traceback(e.__traceback__))
         flash("Wrong Input!", category="error")
         return redirect("/tendered")
 

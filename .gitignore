@@ -3,3 +3,4 @@ secret/
 instance/site.db
 .idea/
 .git/
+flask_session/
