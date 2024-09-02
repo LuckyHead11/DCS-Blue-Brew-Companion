@@ -47,6 +47,11 @@
             </h2>
             <br />
             <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="old_item_name" value="{{ item.item_name }}" readonly>
+                <label for="floatingInput" >(Old Item Name)</label>
+            </div>
+            <br />
+            <div class="form-floating mb-3">
                 <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_name" value="{{ item.item_name }}">
                 <label for="floatingInput" >Name</label>
             </div>

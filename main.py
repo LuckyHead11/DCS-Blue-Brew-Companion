@@ -12,6 +12,10 @@ import datetime
 import base64
 import paramiko
 import random
+import re
+import SamsScraper
+import time
+sams = SamsScraper.SamsScraper()
 exe_file = False
 if exe_file:
     print("Welcome to Blue Brew Companion!")
@@ -88,46 +92,7 @@ inspirational_quotes = [
 def get_qod():
     return random.choice(inspirational_quotes)
 
-def get_item_image(name, company):
-    try:
-        query = f"A photograph of {company} {name}"
-        """Search a query on google"""
-        import requests
-        from bs4 import BeautifulSoup
 
-        url = "https://www.google.com/search?q=" + query + "&source=lnms&tbm=isch"
-        headers = {
-            "user-agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:63.0) Gecko/20100101 Firefox/63.0"}
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        images = soup.find_all("img", class_="rg_i")
-        count = 0
-
-        os.mkdir("static/" + name)
-        for image in images:
-
-            image_url = image.get("data-src")
-            if image_url is not None:
-                count += 1
-                r = requests.get(image_url)
-
-                with open(f"static/{name}/{count}.png", "wb") as f:
-                    f.write(r.content)
-
-                if count >= 5:
-                    break
-
-        # Pick a random image from the folder and only save that image
-        import random
-
-        random_image = random.choice(os.listdir(f"static/{name}"))
-        os.rename(f"static/{name}/{random_image}", f"static/{name}/choose.png")
-
-    except:
-        pass
-
-get_item_image("Banana", "Walmart")
 app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
 app.config["SECRET_KEY"] = "The Blue brew is better than any other Coffee Shop in the world"
@@ -136,6 +101,7 @@ db = SQLAlchemy(app)
 current_items = []
 cost = 0
 
+sams_list = []
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -163,7 +129,17 @@ class ItemOrdered(db.Model):
     item_year = db.Column(db.Integer)
     item_week = db.Column(db.Integer)
 
+class GroceryItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    grocery_name = db.Column(db.String(100), nullable=False)
+    sams_name = db.Column(db.String(100), nullable=False)
+    grocery_amount = db.Column(db.String(100), nullable=False)
+    grocery_description = db.Column(db.String(255), nullable=False)
+    grocery_price = db.Column(db.String(100), nullable=False)
 
+
+
+sams_groceries = []
 def upload_database_to_server():
 
     sftp_host = '50.20.249.5'
@@ -301,6 +277,26 @@ def edit_item(id):
     item = Item.query.filter_by(id=id).first()
     return render_template('new_item.html', item=item)
 
+@app.route('/edit_grocery/<id>')
+def edit_grocery(id):
+    item = GroceryItem.query.filter_by(id=id).first()
+    return render_template('groceries/add_custom_grocery.html', item=item)
+
+@app.route('/confirm-edit-grocery', methods=['POST'])
+def confirm_edit_grocery():
+    old_grocery_name = request.form['old_grocery_name']
+    grocery = GroceryItem.query.filter_by(grocery_name=old_grocery_name).first()
+    if request.form['grocery_name'] == "" or request.form['grocery_description'] == "" or request.form['grocery_price'] == "":
+        flash("Please fill out all fields!", category="error")
+    grocery_price = request.form['grocery_price']
+    grocery_price = grocery_price.replace("$", "").replace(",", "")
+    grocery_price = "{:,.2f}".format(float(grocery_price))
+    grocery.grocery_name = request.form['grocery_name']
+    grocery.grocery_description = request.form['grocery_description']
+    grocery.grocery_price = str(grocery_price)
+    grocery.grocery_amount = request.form['grocery_amount']
+    db.session.commit()
+    return redirect('/grocery_list')
 @app.route('/review_item/<id>')
 def review_item(id):
     item = Item.query.filter_by(id=id).first()
@@ -349,6 +345,7 @@ def clear_admin():
 @app.route('/confirm-edit', methods=['POST'])
 def confirm_edit():
     item_name = request.form.get('item_name')
+    old_item_name = request.form.get('old_item_name')
     item_description = request.form.get('item_description')
     item_price = request.form.get('item_price').replace("$", "").replace(",", "")
 
@@ -359,7 +356,7 @@ def confirm_edit():
         flash("Cannot have an empty price! So we put it as $0.00", category="error")
         item_price = float("0.00")
 
-    item = Item.query.filter_by(item_name=item_name).first()
+    item = Item.query.filter_by(item_name=old_item_name).first()
     item.item_description = item_description
     item.item_price = item_price
     item.item_name = item_name
@@ -379,9 +376,161 @@ def page_not_found(e):
     return render_template("404.html"), 404
 
 
+@app.route('/grocery_list')
+def grocery_list():
+    groceries = GroceryItem.query.all()
+    total_price = 0.00
+    for grocery in groceries:
+        total_price += float(grocery.grocery_price.replace("$", "").replace(",", ""))
+
+    total_price = "{:,.2f}".format(total_price)
+    return render_template('groceries/grocery_list.html', groceries=groceries, total_price=total_price)
+
+@app.route('/add_custom_grocery')
+def add_custom_grocery():
+    return render_template('groceries/add_custom_grocery.html')
+@app.route('/add_grocery', methods=['POST'])
+def add_grocery():
+    grocery_name = request.form.get('grocery_name')
+    grocery_description = request.form.get('grocery_description')
+    grocery_amount = request.form.get('grocery_amount')
+
+    try:
+        if request.form.get('item_price') != "":
+            grocery_price = str('{:,.2f}'.format(
+                float(request.form.get('grocery_price').replace("$", ""))))
+            grocery_description += " (Custom)"
+            if grocery_name != "" or grocery_name != "":
+
+                item = GroceryItem(grocery_name=grocery_name, grocery_description=grocery_description,
+                            grocery_price=grocery_price, sams_name=grocery_name, grocery_amount=grocery_amount)
+
+                db.session.add(item)
+                db.session.commit()
+
+                flash("Successfully added the item!")
+                return redirect('/grocery_list')
+            else:
+                flash("Please fill in all the fields!", category="error")
+                return redirect('/add_custom_grocery')
+        else:
+            flash("Make sure to fill in the price!", category="error")
+            return redirect('/add_custom_grocery')
+    except Exception as e:
+        print(e.with_traceback(e.__traceback__))
+        flash("Critical Error!", category="error")
+        return redirect('/add_custom_grocery')
+
+
+    return redirect('/grocery_list')
+
+@app.route('/add_sams_grocery')
+def add_sams_grocery():
+    return render_template('groceries/add_sams_grocery.html', sams_list=sams_list)
+def extract_price(text):
+    # Use regular expression to find the price in the format $xx.xx
+    match = re.search(r'\$\d+\.\d{2}', text)
+    if match:
+        return match.group()
+    else:
+        return None
+
+
+def extract_quantity(text):
+    # Use regular expression to find the quantity in the format xx pk, xx ct, or xx oz
+    match_pk_ct = re.search(r'\b\d+\s(?:pk|ct|lbs|pcs|rolls|pks|pc)\b', text)
+    match_oz = re.search(r'\b\d+\s(?:oz)\b', text)
+
+    if match_pk_ct:
+        return match_pk_ct.group()
+    elif match_oz:
+        return match_oz.group()
+    else:
+        return '0'
+def extract_number(text):
+    # Use regular expression to find numbers, including decimals
+    match = re.search(r'\b\d+(\.\d+)?\b', text)
+    if match:
+        return match.group()
+    else:
+        return None
+@app.route('/search_sams', methods=['GET', 'POST'])
+def search_sams():
+    #Delete all the files in static/images/groceries
+    for f in os.listdir('static/images/groceries'):
+        os.remove(os.path.join('static/images/groceries', f))
+    #get item_name from post
+    item_name = request.form.get('sams_name')
+    sams_list = sams.full_scrape(item_name, download_image_check=True)
+    for sams_lis in sams_list:
+        print(sams_lis)
+    sams_price = []
+    sams_quantity = []
+    sams_number = []
+
+    sams_img_path = []
+    if sams_list[0] == "No results":
+        sams_list.clear()
+        return render_template('groceries/add_sams_grocery.html', search_query=item_name, sams_list=sams_list,
+                               sams_price=sams_price, sams_quantity=sams_quantity, sams_number=sams_number,sams_img_path=sams_img_path)
+
+    for sams_item in sams_list:
+        #Extract everything past the $
+        price = extract_price(sams_item)
+        if price == "$0.00":
+            price = "Couldn't load, check sams website"
+        sams_price.append(price)
+        sams_quantity.append(extract_quantity(sams_item))
+        sams_number.append(extract_number(sams_item))
+
+
+        new_sams_item = sams_item.replace(extract_number(sams_item) + ". ", '')
+        new_sams_item = new_sams_item.replace(extract_price(sams_item), '')
+        new_title = new_sams_item.replace(" ", "").replace('.', '').replace("\"", '').replace("\\",'').replace('/','')
+        new_sams_item = new_sams_item.replace(extract_quantity(sams_item), '')
+        new_sams_item = new_sams_item.replace(".", '').replace(",", '')
+        sams_list[sams_list.index(sams_item)] = new_sams_item
+
+
+
+        sams_img_path.append("\static\images\groceries\\" + new_title + ".png")
+        print(sams_img_path)
+    time.sleep(2)
+    return render_template('groceries/add_sams_grocery.html', search_query=item_name, sams_list=sams_list, sams_price=sams_price, sams_quantity=sams_quantity, sams_number=sams_number,
+                           sams_img_path=sams_img_path)
+
+@app.route("/add_sams/<int:item_id>/<string:item_name>")
+def add_sams(item_id, item_name):
+    info = sams.get_certain_order(item_name, item_id-1)
+    quantity = extract_quantity(info[0])
+    item_name = info[0]
+    new_sams_item = item_name.replace(extract_number(item_name) + ". ", '')
+    new_sams_item = new_sams_item.replace(extract_quantity(item_name), '')
+    new_sams_item = new_sams_item.replace(".", '').replace(",", '')
+    item = GroceryItem(grocery_name=new_sams_item, grocery_description="(Auto Generated)", grocery_price=info[1], sams_name=info[0], grocery_amount=quantity)
+
+    db.session.add(item)
+    db.session.commit()
+    return redirect('/grocery_list')
+@app.route('/remove_grocery/<int:item_id>')
+def remove_grocery(item_id):
+    item = GroceryItem.query.get(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    return redirect('/grocery_list')
+
+@app.route('/duplicate_grocery/<int:item_id>')
+def duplicate_grocery(item_id):
+    item = GroceryItem.query.get(item_id)
+    new_item = GroceryItem(grocery_name=item.grocery_name, grocery_description=item.grocery_description, grocery_price=item.grocery_price, grocery_amount=item.grocery_amount, sams_name=item.sams_name)
+    db.session.add(new_item)
+    db.session.commit()
+    return redirect('/grocery_list')
+
 @app.route("/admin-login", methods=['GET', 'POST'])
 def admin_login():
     return render_template("admin_login.html")
+
 
 
 @app.route('/admin')
@@ -705,6 +854,6 @@ def admin_logdata():
 
 if __name__ == '__main__':
     create_database(app)
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=8761)
 
 # pyinstaller -F --add-data "templates;templates" --add-data "static;static" --name BlueBrewCompanion main.py

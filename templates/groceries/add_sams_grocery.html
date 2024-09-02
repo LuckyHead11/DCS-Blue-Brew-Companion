@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+
+
+
+{% block content %}
+    <div class="container shadow p-3 mb-5 bg-body rounded">
+
+
+        <form action="/search_sams" method="POST">
+
+            <h2 align="center">
+                <img align="center" src="static/images/blue_brew_logo.png" alt="Blue Brew Logo" width=230 height=127>
+                <br />
+                Sams Club Groceries
+                <br/>
+                <h4 align="center">If the price is $0.00, it means it is not in stock or it is a members only price.</h4>
+                <br/>
+
+            </h2>
+            <br />
+                            <button align="center" type="submit" class="btn btn-primary">Search</button>
+
+            {% if not sams_list %}
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="sams_name">
+                <label for="floatingInput" >Name</label>
+            </div>
+            {% else %}
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="sams_name" value="{{ search_query }}">
+                <label for="floatingInput" >Name</label>
+            </div>
+
+                <h2 align="center">Search results for "{{ search_query }}"</h2>
+            {% endif %}
+
+            {% if sams_list is not none %}
+            <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
+        <div class="container">
+            <div class="row">
+                {% for sam in sams_list %}
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow-sm">
+                            <img src="{{ sams_img_path[sams_list.index(sam)] }}" class="card-img-top" alt="{{ sam }}" style="width: 50%; height: auto; margin: 0 auto;">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ sam }}</h5>
+                                <p class="card-text">Price: {{ sams_price[sams_list.index(sam)] }}</p>
+                                <p class="card-text">Quantity: {{ sams_quantity[sams_list.index(sam)] }}</p>
+                                <a href="/add_sams/{{ sams_number[sams_list.index(sam)] }}/{{ search_query }}" class="btn btn-primary">Add</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+            {% endif %}
+
+        </form>
+
+    
+{% endblock %}

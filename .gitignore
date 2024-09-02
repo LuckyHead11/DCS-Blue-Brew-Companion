@@ -4,3 +4,4 @@ instance/site.db
 .idea/
 .git/
 flask_session/
+/static/images/groceries/

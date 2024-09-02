@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    
+<div align="center" class="container">
+    <img src="static/images/blue_brew_logo.png" alt="Blue Brew Logo" width=230 height=127>
+
+
+
+
+    <h1>Grocery List</h1>
+    <h2>Estimated Price: <lol style="color: green">${{ total_price }}<lol/></h2>
+
+    <a type="button" class="btn btn-primary" role="button" href="/add_sams_grocery">Add Sams Grocery</a>
+    <a type="button" class="btn btn-secondary" role="button" href="/add_custom_grocery">Add Custom Grocery</a>
+    <br /><br />
+    <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Amt Per Pack</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grocery in groceries %}
+                    <tr>
+                        <td>{{ grocery.grocery_name }}</td>
+                        <td>{{ grocery.grocery_description }}</td>
+                        <td>${{ grocery.grocery_price }}</td>
+                        <td>{{ grocery.grocery_amount }}</td>
+                        <td>
+                            <a type="button" class="btn btn-primary" role="button" href="/edit_grocery/{{ grocery.id }}">Edit</a>
+                            <a type="button" class="btn btn-primary" role="button" href="/duplicate_grocery/{{ grocery.id }}">Duplicate</a>
+                            <a type="button" class="btn btn-danger" role="button" href="/remove_grocery/{{ grocery.id }}">Remove</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+
+
+
+{% block content %}
+    <div class="container shadow p-3 mb-5 bg-body rounded">
+        {% if not item %}
+        <form action="/add_grocery" method="POST">
+            <h2 align="center">
+                Add a grocery.
+            </h2>
+            <br />
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Frito Lay Chip Pack" name="grocery_name">
+                <label for="floatingInput" >Name</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Chip Pack" name="grocery_description">
+                <label for="floatingInput" >Description</label>
+            </div>
+            <div class="form-floating">
+                <input type="text" class="form-control" id="floatingInput" placeholder="$15" name="grocery_price" value="">
+                <label for="floatingInput" >Estimated Price</label>
+            </div>
+            <br />
+            <div class="form-floating">
+                <input type="text" class="form-control" id="floatingInput" placeholder="45" name="grocery_amount" value="">
+                <label for="floatingInput" >How many are in the pack?</label>
+            </div>
+            <br />
+
+            <button align="center" type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        {% else %}
+        <form action="/confirm-edit-grocery" method="POST">
+            <h2 align="center">
+                Edit Grocery
+            </h2>
+            <br />
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="old_grocery_name" value="{{ item.grocery_name }}" readonly>
+                <label for="floatingInput" >(Old Grocery Name)</label>
+            </div>
+            <br />
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Frito Lay Chip Pack" name="grocery_name" value="{{ item.grocery_name }}">
+                <label for="floatingInput" >Name</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingInput" placeholder="Chip Pack" name="grocery_description" value="{{ item.grocery_description }}">
+                <label for="floatingInput" >Description</label>
+            </div>
+            <div class="form-floating">
+                <input type="text" class="form-control" id="floatingInput" placeholder="$15" name="grocery_price" value="{{ item.grocery_price }}">
+                <label for="floatingInput" >Estimated Price</label>
+            </div>
+            <br />
+            <div class="form-floating">
+                <input type="text" class="form-control" id="floatingInput" placeholder="45" name="grocery_amount" value="{{ item.grocery_amount }}">
+                <label for="floatingInput" >How many are in the pack?</label>
+            </div>
+            <br />
+            
+            <button align="center" type="submit" class="btn btn-primary">Submit Changes</button>
+
+
+        
+        </form>
+        {% endif %}
+    </div>
+    
+{% endblock %}
