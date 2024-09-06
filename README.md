@@ -14,11 +14,11 @@ This cash register app is made in Python, and made possible by Flask.
 <li>Everything is backed up in a database, which then can be uploaded onto a server for safekeeping.</li>
 
 <h1>Installation for Ubuntu Servers</h1>
-<li>Install python: `sudo apt-get install python3`</li>
-<li>Clone repo: **git clone https://github.com/LuckyHead11/DCS-Blue-Brew-Companion.git**</li>
-<li>Create Virtual Env: **python3 -m venv venv**</li>
-<li>Install requirements: **pip install -r requirements.txt**</li>
-<li>Run: **python3 main.py** (Or do **nohup python3 main.py**, to run indefinitely)</li>
+<li>Install python: sudo apt-get install python3</li>
+<li>Clone repo: git clone https://github.com/LuckyHead11/DCS-Blue-Brew-Companion.git</li>
+<li>Create Virtual Env: python3 -m venv venv</li>
+<li>Install requirements: pip install -r requirements.txt</li>
+<li>Run: python3 main.py (Or do nohup python3 main.py, to run indefinitely)</li>
 
 
 <br/>
