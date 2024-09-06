@@ -13,9 +13,13 @@ This cash register app is made in Python, and made possible by Flask.
 <li>There is a log system that tracks all changes made.</li>
 <li>Everything is backed up in a database, which then can be uploaded onto a server for safekeeping.</li>
 
-<h1>Installation</h1>
-Install python
-Use `git status` to list all new or modified files that haven't yet been committed.
+<h1>Installation for Ubuntu Servers</h1>
+<li>Install python: `sudo apt-get install python3`</li>
+<li>Clone repo: **git clone https://github.com/LuckyHead11/DCS-Blue-Brew-Companion.git**</li>
+<li>Create Virtual Env: **python3 -m venv venv**</li>
+<li>Install requirements: **pip install -r requirements.txt**</li>
+<li>Run: **python3 main.py** (Or do **nohup python3 main.py**, to run indefinitely)</li>
+
 
 <br/>
 <h3> Created for and used by <a href="https://www.decaturchristian.net"> Decatur Christian School <a/> </h3>
