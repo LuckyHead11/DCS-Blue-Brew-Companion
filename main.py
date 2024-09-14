@@ -3,6 +3,8 @@
 # Made by: Joshua Kirby
 # Date of creation 11/2/2022
 
+#mport jsonify
+from flask import jsonify
 from os import path
 import os
 from flask_session import Session
@@ -15,6 +17,7 @@ import random
 import re
 import SamsScraper
 import time
+
 sams = SamsScraper.SamsScraper()
 exe_file = False
 if exe_file:
@@ -243,15 +246,31 @@ def checkout():
 
 @app.route('/order')
 def order():
-    cost = 0
     items = Item.query.all()
-
+    item_frequencies = {}
     for item in current_items:
-        item.item_price = item.item_price.replace("$", "").replace(",", "")
-        cost += float(str(item.item_price).replace("$", ""))
+        if item.id in item_frequencies:
+            item_frequencies[item.id] += 1
+        else:
+            item_frequencies[item.id] = 1
 
-    cost = '{:,.2f}'.format(cost)
-    return render_template('order.html', items=items, current_items=current_items, cost=cost)
+    cost = '{:,.2f}'.format(sum(float(item.item_price.replace("$", "").replace(",", "")) for item in current_items))
+    return render_template('order.html', items=items, current_items=current_items, cost=cost, item_frequencies=item_frequencies)
+
+@app.route('/add_order/<int:id>', methods=['POST'])
+def add_order(id):
+    item = Item.query.get(id)
+    if item:
+        current_items.append(item)
+        cost = sum(float(item.item_price.replace("$", "").replace(",", "")) for item in current_items)
+        cost = '{:,.2f}'.format(cost)
+        return jsonify({'current_items': [{'item_name': item.item_name, 'item_price': item.item_price, 'item_description': item.item_description} for item in current_items], 'total_cost': cost})
+    return jsonify({'error': 'Item not found'}), 404
+
+@app.route('/clear_order', methods=['POST'])
+def clear_order():
+    current_items.clear()
+    return jsonify({'current_items': [], 'total_cost': '0.00'})
 
 
 @app.route("/new-database")
@@ -296,7 +315,7 @@ def confirm_edit_grocery():
     grocery.grocery_price = str(grocery_price)
     grocery.grocery_amount = request.form['grocery_amount']
     db.session.commit()
-    return redirect('/grocery_list')
+    # Removed unreachable code
 @app.route('/review_item/<id>')
 def review_item(id):
     item = Item.query.filter_by(id=id).first()
@@ -371,7 +390,8 @@ def confirm_edit():
 
 
 @app.errorhandler(404)
-def page_not_found(e):
+def page_not_found(error):
+    app.logger.error(f"Page not found: {error}")
     flash("Page not found!", category="error")
     return render_template("404.html"), 404
 
@@ -597,18 +617,18 @@ def add():
         return redirect('/new_item')
 
 
-@app.route("/clear_order")
-def clear_order():
-    current_items.clear()
-    return redirect("/order")
+# @app.route("/clear_order")
+# def clear_order():
+#     current_items.clear()
+#     return redirect("/order")
 
 
-@app.route('/add_order/<id>')
-def add_order(id):
-    item = Item.query.filter_by(id=id).first()
+# @app.route('/add_order/<id>')
+# def add_order(id):
+#     item = Item.query.filter_by(id=id).first()
 
-    current_items.append(item)
-    return redirect('/order')
+#     current_items.append(item)
+#     return redirect('/order')
 
 
 @app.route('/admin/login', methods=['POST'])
@@ -721,7 +741,11 @@ def items_profit():
         else:
             items_profit[item.item_name] += float(item.item_price)
 
+    for item in items_profit:
+        items_profit[item] = float('{:,.2f}'.format(items_profit[item]))
     items_profit = sorted(items_profit.items(), key=lambda x: x[1], reverse=True)
+
+
     if check_admin():
         return render_template("items_profit.html", items=items_profit)
     else:
@@ -851,8 +875,96 @@ def admin_logdata():
     else:
         return render_template("admin_login.html")
 
+    
+@app.route("/weekly_overview")
+def weekly_overview():
+
+    #Make a weekly overview, by seeing what the diffrence is from the last week
+    #Get the current week
+    current_week = datetime.datetime.now().isocalendar()[1]
+    current_year = datetime.datetime.now().year
+    #Get the last week
+    last_week = current_week - 1
+    last_year = current_year
+    
+    #Get all the items bought
+    items = ItemOrdered.query.all()
+    last_week_items = []
+    current_week_items = []
+    for item in items:
+        if item.item_week == last_week and item.item_year == last_year:
+            last_week_items.append(item)
+        if item.item_week == current_week and item.item_year == current_year:
+            current_week_items.append(item)
+    last_week_earnings = 0
+    current_week_earnings = 0
+    for item in last_week_items:
+        last_week_earnings += float(item.item_price)
+    for item in current_week_items:
+        current_week_earnings += float(item.item_price)
+        
+    earnings_diffrence = current_week_earnings - last_week_earnings
+    if abs(earnings_diffrence) == earnings_diffrence:
+        positive = True
+    else:
+        positive = False
+    last_week_earnings = '{:,.2f}'.format(last_week_earnings)
+    current_week_earnings = '{:,.2f}'.format(current_week_earnings)
+    
+    earnings_diffrence = '{:,.2f}'.format(earnings_diffrence)
+    
+    
+    #Now get most popular item for last week and current week
+    last_week_items_bought = []
+    current_week_items_bought = []
+    for item in last_week_items:
+        last_week_items_bought.append(item.item_name)
+    for item in current_week_items:
+        current_week_items_bought.append(item.item_name)
+    most_popular_last_week = max(last_week_items_bought, key=last_week_items_bought.count)
+    most_popular_current_week = max(current_week_items_bought, key=current_week_items_bought.count)
+    most_popular_last_week_amount = last_week_items_bought.count(most_popular_last_week)
+    most_popular_current_week_amount = current_week_items_bought.count(most_popular_current_week)
+    most_popular_last_week_profit = 0
+    most_popular_current_week_profit = 0
+    for item in last_week_items:
+        if item.item_name == most_popular_last_week:
+            most_popular_last_week_profit += float(item.item_price)
+    for item in current_week_items:
+        if item.item_name == most_popular_current_week:
+            most_popular_current_week_profit += float(item.item_price)
+    most_popular_last_week_profit = '{:,.2f}'.format(most_popular_last_week_profit)
+    most_popular_current_week_profit = '{:,.2f}'.format(most_popular_current_week_profit)
+    
+    #Worst items
+    least_popular_last_week = min(last_week_items_bought, key=last_week_items_bought.count)
+    least_popular_current_week = min(current_week_items_bought, key=current_week_items_bought.count)
+    least_popular_last_week_amount = last_week_items_bought.count(least_popular_last_week)
+    least_popular_current_week_amount = current_week_items_bought.count(least_popular_current_week)
+    least_popular_last_week_profit = 0
+    least_popular_current_week_profit = 0
+    for item in last_week_items:
+        if item.item_name == least_popular_last_week:
+            least_popular_last_week_profit += float(item.item_price)
+    for item in current_week_items:
+        if item.item_name == least_popular_current_week:
+            least_popular_current_week_profit += float(item.item_price)
+    least_popular_last_week_profit = '{:,.2f}'.format(least_popular_last_week_profit)
+    least_popular_current_week_profit = '{:,.2f}'.format(least_popular_current_week_profit)
+    
+    if check_admin():
+        return render_template("weekly_overview.html", last_week_earnings=last_week_earnings, current_week_earnings=current_week_earnings, earnings_diffrence=earnings_diffrence, positive=positive,
+                               most_popular_last_week=most_popular_last_week, most_popular_current_week=most_popular_current_week, most_popular_last_week_amount=most_popular_last_week_amount, most_popular_current_week_amount=most_popular_current_week_amount,
+                               most_popular_last_week_profit=most_popular_last_week_profit, most_popular_current_week_profit=most_popular_current_week_profit,
+                               least_popular_last_week=least_popular_last_week, least_popular_current_week=least_popular_current_week, least_popular_last_week_amount=least_popular_last_week_amount, least_popular_current_week_amount=least_popular_current_week_amount,
+                               least_popular_last_week_profit=least_popular_last_week_profit, least_popular_current_week_profit=least_popular_current_week_profit)
+    else:
+        return redirect("/admin-login")
+    
+
 
 if __name__ == '__main__':
+    
     create_database(app)
     app.run(host="0.0.0.0", port=8761)
 

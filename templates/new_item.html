@@ -1,82 +1,77 @@
 {% extends 'base.html' %}
 
-
-
-
 {% block content %}
-    <div class="container shadow p-3 mb-5 bg-body rounded">
+    <div class="container shadow p-4 mb-5 bg-body rounded">
         {% if not item %}
         <form action="/add" method="POST">
-            <h2 align="center">
-                Create a New Item.
+            <h2 class="text-center mb-4">
+                Create a New Item
             </h2>
-            <br />
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_name">
-                <label for="floatingInput" >Name</label>
+                <input type="text" class="form-control" id="item_name" placeholder="Coffee Cake" name="item_name" required>
+                <label for="item_name">Name</label>
             </div>
 
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_company">
-                <label for="floatingInput" >Company</label>
+                <input type="text" class="form-control" id="item_company" placeholder="Company Name" name="item_company" required>
+                <label for="item_company">Company</label>
             </div>
-
 
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_description">
-                <label for="floatingInput" >Description</label>
+                <textarea class="form-control" id="item_description" placeholder="Description" name="item_description" style="height: 100px" required></textarea>
+                <label for="item_description">Description</label>
             </div>
-            <div class="form-floating">
-                <input type="text" class="form-control" id="floatingInput" placeholder="$.50" name="item_price" value="">
-                <label for="floatingInput" >Price</label>
+
+            <div class="form-floating mb-3">
+                <input type="number" step="0.01" class="form-control" id="item_price" placeholder="Price" name="item_price" required>
+                <label for="item_price">Price</label>
             </div>
-            <br />
-            <div>
-                <input class="form-check-input" type="checkbox" name="item_food" id="flexCheckDefault">
-                <label class="form-check-label" for="flexCheckDefault">
-                Is it food? (turn the checkbox off for drink)
+
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="item_food" id="item_food">
+                <label class="form-check-label" for="item_food">
+                    Is it food? (turn the checkbox off for drink)
                 </label>
             </div>
 
-            <button align="center" type="submit" class="btn btn-primary">Submit</button>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
         </form>
         {% else %}
         <form action="/confirm-edit" method="POST">
-            <h2 align="center">
+            <h2 class="text-center mb-4">
                 Edit Item
             </h2>
-            <br />
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="old_item_name" value="{{ item.item_name }}" readonly>
-                <label for="floatingInput" >(Old Item Name)</label>
-            </div>
-            <br />
-            <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_name" value="{{ item.item_name }}">
-                <label for="floatingInput" >Name</label>
+                <input type="text" class="form-control" id="old_item_name" placeholder="Old Item Name" name="old_item_name" value="{{ item.item_name }}" readonly>
+                <label for="old_item_name">(Old Item Name)</label>
             </div>
 
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_company" value="{{ item.item_company }}">
-                <label for="floatingInput" >Company</label>
+                <input type="text" class="form-control" id="item_name" placeholder="New Item Name" name="item_name" value="{{ item.item_name }}" required>
+                <label for="item_name">Name</label>
             </div>
-
 
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="floatingInput" placeholder="Coffee Cake" name="item_description" value="{{item.item_description}}">
-                <label for="floatingInput" >Description</label>
+                <input type="text" class="form-control" id="item_company" placeholder="Company Name" name="item_company" value="{{ item.item_company }}" required>
+                <label for="item_company">Company</label>
             </div>
-            <div class="form-floating">
-                <input type="text" class="form-control" id="floatingInput" placeholder="$.50" name="item_price" value="{{item.item_price}}">
-                <label for="floatingInput" >Price</label>
-            <br />
-            
-            <button align="center" type="submit" class="btn btn-primary">Submit Changes</button>
 
+            <div class="form-floating mb-3">
+                <textarea class="form-control" id="item_description" placeholder="Description" name="item_description" style="height: 100px" required>{{ item.item_description }}</textarea>
+                <label for="item_description">Description</label>
+            </div>
 
-        
+            <div class="form-floating mb-3">
+                <input type="number" step="0.01" class="form-control" id="item_price" placeholder="Price" name="item_price" value="{{ item.item_price }}" required>
+                <label for="item_price">Price</label>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Submit Changes</button>
+            </div>
         </form>
         {% endif %}
     </div>
-    
 {% endblock %}

@@ -2,100 +2,112 @@
 
 {% block content %}
     <div class="row">
-        <div class="col" span=48>
+        <div class="col-md-8">
             <h1 align="center">Snacks</h1>
             {% if not items %}
             <div align="center">
                 <h6>Hey! There are no food items here.</h6>
                 <h5>Press the button on the top toolbar to create some!</h5>
             </div>
-
             {% endif %}
-            <div class=" shadow p-2 mb-5 bg-body rounded">
-
+            <div class="shadow p-2 mb-5 bg-body rounded">
                 <div class="row">
                     {% for item in items %}
                         {% if item.item_food == True %}
-
                             <div class="col sm-6">
-                                <a href="/add_order/{{ item.id }}" style="text-decoration: none; color: inherit;" title="{{ item.item_price }}">
+                                <a href="javascript:void(0);" onclick="addItem({{ item.id }}, '{{ item.item_name }}', '{{ item.item_price }}')" style="text-decoration: none; color: inherit;" title="{{ item.item_price }}">
                                     <div class="card shadow" style="width: 10rem; outline: none;">
                                         <div class="card-body" align="center" style="outline: none;">
                                             <h6 class="card-text">{{ item.item_name }}</h6>
                                         </div>
                                     </div>
                                 </a>
-
-
                             </div>
                         {% endif %}
-
                     {% endfor %}
-
-
-
                 </div>
             </div>
-        </div>
 
-        <div class="col" span=48>
             <h1 align="center">Drinks</h1>
             <div align="left" class="container shadow p-3 mb-5 bg-body rounded">
-
                 <div class="row">
                     {% for item in items %}
                         {% if item.item_food == False %}
-
                             <div class="col sm-6">
-                                <a href="/add_order/{{ item.id }}" style="text-decoration: none; color: inherit;" title="{{ item.item_price }}">
+                                <a href="javascript:void(0);" onclick="addItem({{ item.id }}, '{{ item.item_name }}', '{{ item.item_price }}')" style="text-decoration: none; color: inherit;" title="{{ item.item_price }}">
                                     <div class="card shadow" style="width: 10rem; outline: none;">
                                         <div class="card-body" align="center" style="outline: none;">
                                             <h6 class="card-text">{{ item.item_name }}</h6>
                                         </div>
                                     </div>
                                 </a>
-
-
                             </div>
                         {% endif %}
-
                     {% endfor %}
-
-
-
                 </div>
             </div>
         </div>
 
-        <div class="col-md-2">
-            <h1>Checkout</h1>
-            {% if current_items %}
+        <div class="col-md-4">
+            <h1 class="text-center">Checkout</h1>
+            <div id="order-list" class="list-group mb-3">
+                {% if current_items %}
                 {% for item in current_items %}
-                    <b style="color: black;" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip"
-        data-bs-title="{{ item.item_description }}">
-                        +{{ item.item_name }}
-                        <a style="color: green;">${{ item.item_price }}</a>
-                    <br />
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ item.item_name }}</span>
+                    <span class="badge bg-success">${{ item.item_price }}</span>
+                </div>
                 {% endfor %}
-            <div style="float: left">
-                <h4 >Total Cost: ${{ cost }}</h4>
+                {% endif %}
             </div>
-            <br/>
-            <br/>
-            <a href="/checkout" type="button" class="btn btn-success">Confirm</a>
-            <a href="/clear_order" type="button" class="btn btn-danger">Clear Order</a>
-            {% endif %}
+            <div class="d-flex justify-content-between">
+                <h4>Total Cost: $<span id="total-cost">{{ cost }}</span></h4>
+                <div>
+                    <button class="btn btn-success" onclick="window.location.href='/checkout'">Confirm</button>
+                    <button class="btn btn-danger" onclick="clearOrder()">Clear Order</button>
+                </div>
+            </div>
         </div>
-
     </div>
 
+    <script>
+        function addItem(id, name, price) {
+            fetch(`/add_order/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name, price: price })
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateOrderList(data.current_items, data.total_cost);
+            });
+        }
 
+        function clearOrder() {
+            fetch('/clear_order', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateOrderList([], '0.00');
+            });
+        }
 
-
-
-
-
-
-
+        function updateOrderList(items, totalCost) {
+            const orderList = document.getElementById('order-list');
+            orderList.innerHTML = '';
+            items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'list-group-item d-flex justify-content-between align-items-center';
+                itemElement.innerHTML = `
+                    <span>${item.item_name}</span>
+                    <span class="badge bg-success">$${item.item_price}</span>
+                `;
+                orderList.appendChild(itemElement);
+            });
+            document.getElementById('total-cost').innerText = totalCost;
+        }
+    </script>
 {% endblock %}

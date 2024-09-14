@@ -1,19 +1,16 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
-    
-<div align="center" class="container">
-    <img src="static/images/blue_brew_logo.png" alt="Blue Brew Logo" width=230 height=127>
-    <h1>Admin Page</h1>
+<div class="container text-center my-5">
+    <img src="static/images/blue_brew_logo.png" alt="Blue Brew Logo" class="img-fluid mb-4" style="max-width: 230px;">
+    <h1 class="mb-4">Admin Page</h1>
 
-    <h4>Items Profited</h4>
-    <br/>
-    <a align="center" type="button" class="btn btn-primary" href="/items_profit_reverse"> Make it reversed (Least To Most)</a>
-    <br/>
-    <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
-        <table class="table">
-            <thead>
+    <h4 class="mb-4">Items Profited</h4>
+    <a class="btn btn-primary mb-4" href="/items_profit_reverse">Make it reversed (Least To Most)</a>
+
+    <div class="table-responsive shadow p-3 mb-5 bg-body rounded">
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
                 <tr>
                     <th scope="col">Name</th>
                     <th scope="col">Money Made</th>
@@ -23,16 +20,11 @@
                 {% for item in items %}
                     <tr>
                         <td>{{ item[0] }}</td>
-                        <td style="color: green" ><b>${{ item[1] }}<b/></td>
-
+                        <td class="text-success"><b>${{ item[1] }}</b></td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-
-
 </div>
-
-
 {% endblock %}

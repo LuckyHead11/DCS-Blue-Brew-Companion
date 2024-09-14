@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
+        <h3>Weekly Overview</h3>
+        <div class="row">
+            <!-- Last Week's Information -->
+            <div class="col-md-6">
+                <div class="card text-white bg-secondary mb-3">
+                    <div class="card-header">Last Week's Earnings</div>
+                    <div class="card-body">
+                        <h5 class="card-title">${{ last_week_earnings }}</h5>
+                    </div>
+                </div>
+                <div class="card text-white bg-secondary mb-3">
+                    <div class="card-header">Most Popular Last Week</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ most_popular_last_week }}</h5>
+                        <p class="card-text">Amount: {{ most_popular_last_week_amount }}</p>
+                        <p class="card-text">Profit: ${{ most_popular_last_week_profit }}</p>
+                    </div>
+                </div>
+                <div class="card text-white bg-secondary mb-5">
+                    <div class="card-header">Least Popular Last Week</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ least_popular_last_week }}</h5>
+                        <p class="card-text">Amount: {{ least_popular_last_week_amount }}</p>
+                        <p class="card-text">Profit: ${{ least_popular_last_week_profit }}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- This Week's Information -->
+            <div class="col-md-6">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-header">Current Week's Earnings</div>
+                    <div class="card-body">
+                        <h5 class="card-title">${{ current_week_earnings }}</h5>
+                    </div>
+                </div>
+                
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-header">Most Popular This Week</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ most_popular_current_week }}</h5>
+                        <p class="card-text">Amount: {{ most_popular_current_week_amount }}</p>
+                        <p class="card-text">Profit: ${{ most_popular_current_week_profit }}</p>
+                    </div>
+                </div>
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-header">Least Popular This Week</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ least_popular_current_week }}</h5>
+                        <p class="card-text">Amount: {{ least_popular_current_week_amount }}</p>
+                        <p class="card-text">Profit: ${{ least_popular_current_week_profit }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Difference</div>
+            <div class="card-body">
+                <h5 class="card-title">${{ earnings_diffrence }}</h5>
+            </div>
+        </div>
+    </div>
+{% endblock %}
