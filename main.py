@@ -146,9 +146,14 @@ class GroceryItem(db.Model):
 sams_groceries = []
 def upload_database_to_server():
 
-    sftp_host = '50.20.249.5'
     sftp_username = 'root'
-    sftp_password = '04090409qwerT'
+    
+    with open('secret/server_access.txt', 'r') as f:
+        things = f.readlines()
+    sftp_host = things[0].strip()
+    sftp_password = things[1].strip()
+    print("Connecting to the server...")
+    print(sftp_host, sftp_username, sftp_password)
     remote_directory = '/root/BBC/database-backups/'
 
     ssh = paramiko.SSHClient()
