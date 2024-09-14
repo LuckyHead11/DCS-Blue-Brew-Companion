@@ -249,7 +249,9 @@ def checkout():
     total_cost = '{:,.2f}'.format(total_cost)
     return render_template("checkout.html", current_items=current_items, cost=str(total_cost))
 
-
+@app.route('/game')
+def game():
+    return render_template('game.html')
 @app.route('/order')
 def order():
     items = Item.query.all()

@@ -22,7 +22,7 @@
           <a class="nav-link" aria-current="page" href="/admin">Admin Panel</a>
         </li>
       </ul>
-      <span class="navbar-text" id="clock"></span>
+      <span class="navbar-text" id="clock" onclick="redirectToGame()"></span>
     </div>
   </div>
 </nav>
@@ -44,6 +44,10 @@
     
     const timeString = `${monthName} ${day}, ${dayName}, ${hours}:${minutes}:${seconds}`;
     document.getElementById('clock').textContent = timeString;
+  }
+
+  function redirectToGame() {
+    window.location.href = '/game';
   }
 
   setInterval(updateClock, 1000);
