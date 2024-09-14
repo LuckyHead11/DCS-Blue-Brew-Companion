@@ -1,27 +1,23 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
-    
-<div align="center" class="container">
-
-    <img src="static/images/blue_brew_logo.png" alt="Blue Brew Logo" width=230 height=127>
-    <br />
-    <br />
-    <h1>Complete Overview for "{{ name }}"</h1>
-        <h2>Current Price: <bold style="color: green">${{ price }}</bold></h2>
-        <h2>Amount Sold: <bold style="color: green">{{ amount_bought }}</bold></h2>
-        <h2>Total Profit: <bold style="color: green">${{ profit }}</bold></h2>
-    <br/>
-        <h3>Yearly Earnings: <bold style="color: green">${{ ye }}</bold></h3>
-        <h3>Monthy Earnings: <bold style="color: green">${{ me }}</bold></h3>
-        <h3>Weekly Earnings: <bold style="color: green">${{ we }}</bold></h3>
-        <h3>Daily Earnings: <bold style="color: green">${{ de }}</bold></h3>
-    <br/>
-    <br/>
-
-
+<div class="container text-center mt-5">
+    <div class="card">
+        <h1 class="mb-4">Complete Overview for "{{ name }}"</h1>
+        <div class="card-body shadow">
+            <div class="row">
+                <div class="col-md-6 offset-md-3">
+                    <h2>Current Price: <span class="text-success font-weight-bold">${{ price }}</span></h2>
+                    <h2>Amount Sold: <span class="text-success font-weight-bold">{{ amount_bought }}</span></h2>
+                    <h2>Total Profit: <span class="text-success font-weight-bold">${{ profit }}</span></h2>
+                    <br/>
+                    <h3>Yearly Earnings: <span class="text-success font-weight-bold">${{ ye }}</span></h3>
+                    <h3>Monthly Earnings: <span class="text-success font-weight-bold">${{ me }}</span></h3>
+                    <h3>Weekly Earnings: <span class="text-success font-weight-bold">${{ we }}</span></h3>
+                    <h3>Daily Earnings: <span class="text-success font-weight-bold">${{ de }}</span></h3>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-
 {% endblock %}

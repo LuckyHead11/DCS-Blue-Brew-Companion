@@ -1,17 +1,31 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
-    <h1 align="center"><bold>Tender</bold></h1>
-    <form action="/confirm_tender"class="form-floating" method="POST">
-        <h1>Cost: <z style="color: green"> ${{total_cost}} </z></h1>
-        <input autofocus type="text" class="form-control" id="floatingInputValue" placeholder="$5.00" name="tendered">
-        <label for="floatingInputValue">Tendered Amount</label>
+<div class="container-lg shadow p-3 mb-5 bg-body rounded text-center">
+    <h1 class="mb-4"><strong>Tender</strong></h1>
+    <form action="/confirm_tender" class="form-floating" method="POST">
+        <h2>Cost: <span style="color: green;">${{total_cost}}</span></h2>
+        <div class="mb-3">
+            <input autofocus type="text" class="form-control" id="floatingInputValue" placeholder="${{total_cost}}" name="tendered">
+            <label for="floatingInputValue">(Click buttons to add amount to input)</label>
+        </div>
+        <div class="btn-group mb-3" role="group" aria-label="Preset amounts">
+            <button type="button" class="btn btn-secondary me-2 rounded" onclick="addToInputValue(0.01)">$0.01</button>
+            <button type="button" class="btn btn-secondary me-2 rounded" onclick="addToInputValue(0.10)">$0.10</button>
+            <button type="button" class="btn btn-secondary me-2 rounded" onclick="addToInputValue(0.25)">$0.25</button>
+            <button type="button" class="btn btn-secondary me-2 rounded" onclick="addToInputValue(0.50)">$0.50</button>
+            <button type="button" class="btn btn-secondary rounded" onclick="addToInputValue(1.00)">$1.00</button>
+        </div>
         <br/>
-
-
+        <button type="submit" class="btn btn-primary">Confirm Tender</button>
     </form>
 </div>
 
-
+<script>
+    function addToInputValue(amount) {
+        var input = document.getElementById('floatingInputValue');
+        var currentValue = parseFloat(input.value) || 0;
+        input.value = (currentValue + amount).toFixed(2);
+    }
+</script>
 {% endblock %}

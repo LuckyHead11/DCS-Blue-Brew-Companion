@@ -12,19 +12,40 @@
         <li class="nav-item">
           <a class="nav-link" aria-current="page" href="/new_item">Add a new snack/drink</a>
         </li>
-
         <li class="nav-item">
           <a class="nav-link" aria-current="page" href="/order">Take a Order</a>
         </li>
-
         <li class="nav-item">
           <a class="nav-link" aria-current="page" href="/grocery_list">Grocery List</a>
         </li>
-
         <li class="nav-item">
           <a class="nav-link" aria-current="page" href="/admin">Admin Panel</a>
         </li>
       </ul>
+      <span class="navbar-text" id="clock"></span>
     </div>
   </div>
 </nav>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    const dayName = days[now.getDay()];
+    const monthName = months[now.getMonth()];
+    const day = now.getDate();
+    const year = now.getFullYear();
+    
+    const timeString = `${monthName} ${day}, ${dayName}, ${hours}:${minutes}:${seconds}`;
+    document.getElementById('clock').textContent = timeString;
+  }
+
+  setInterval(updateClock, 1000);
+  updateClock(); // Initial call to display the clock immediately
+</script>

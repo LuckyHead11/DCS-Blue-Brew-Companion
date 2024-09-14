@@ -89,7 +89,8 @@ inspirational_quotes = [
     "Success usually comes to those who are too busy to be looking for it. - Henry David Thoreau",
     "Opportunities don't happen. You create them. - Chris Grosser",
     "The only way to do great work is to love what you do. - Steve Jobs",
-    "The best revenge is massive success. - Frank Sinatra"
+    "The best revenge is massive success. - Frank Sinatra",
+    "Don't be afraid to give up the good to go for the great. - John D. Rockefeller"
 ]
 
 def get_qod():
@@ -247,15 +248,13 @@ def checkout():
 @app.route('/order')
 def order():
     items = Item.query.all()
-    item_frequencies = {}
-    for item in current_items:
-        if item.id in item_frequencies:
-            item_frequencies[item.id] += 1
-        else:
-            item_frequencies[item.id] = 1
-
+    
+    #Sort all the items by alphabetical order
+    items = sorted(items, key=lambda x: x.item_name)
+            
+    
     cost = '{:,.2f}'.format(sum(float(item.item_price.replace("$", "").replace(",", "")) for item in current_items))
-    return render_template('order.html', items=items, current_items=current_items, cost=cost, item_frequencies=item_frequencies)
+    return render_template('order.html', items=items, current_items=current_items, cost=cost)
 
 @app.route('/add_order/<int:id>', methods=['POST'])
 def add_order(id):
@@ -354,7 +353,7 @@ def review_item(id):
     return render_template('review_item.html', name=name, description=description,
                            price=price, ye=ye, me=me, we=we, de=de, profit=profit, amount_bought=amount_bought)
 
-@app.route('/clear-admin')
+@app.route('/cl2ear-admin')
 def clear_admin():
     # Remove all the LogData items from the database
     LogData.query.delete()

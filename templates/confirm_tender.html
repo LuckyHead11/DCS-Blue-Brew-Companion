@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-lg shadow p-3 mb-5 bg-body rounded" align="center">
+<div class="container-lg shadow p-3 mb-5 bg-body rounded text-center">
     <h1>Tender</h1>
-    <h2>Change Due: <b style="color: green">${{ change }}</b></h2>
+    <h2>Change Due: <b class="text-success">${{ change }}</b></h2>
     <br/>
-    <h4>Total Cost: <z style="color: green">${{ total }}</z></h2>
-    <h4>Tendered Amount: <z style="color: green">${{ tendered }}</z></h2>
+    <h4>Total Cost: <span class="text-success">${{ total }}</span></h4>
+    <h4>Tendered Amount: <span class="text-success">${{ tendered }}</span></h4>
     <br />
 
     <a autofocus type="button" class="btn btn-primary btn-lg" href="/new-order">Start a new Order</a>
     <br />
-    <z> --or-- </z>
+    <span> --or-- </span>
     <br />
     <a type="button" class="btn btn-primary" href="/">Go back Home</a>
 </div>

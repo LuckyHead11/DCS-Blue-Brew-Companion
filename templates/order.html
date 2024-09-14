@@ -85,6 +85,16 @@
             });
         }
 
+        function removeItem(id) {
+            fetch(`/remove_order/${id}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateOrderList(data.current_items, data.total_cost);
+            });
+        }
+
         function clearOrder() {
             fetch('/clear_order', {
                 method: 'POST'
@@ -98,15 +108,26 @@
         function updateOrderList(items, totalCost) {
             const orderList = document.getElementById('order-list');
             orderList.innerHTML = '';
-            items.forEach(item => {
+
+            const itemCounts = items.reduce((acc, item) => {
+                if (!acc[item.item_name]) {
+                    acc[item.item_name] = { ...item, count: 0 };
+                }
+                acc[item.item_name].count += 1;
+                return acc;
+            }, {});
+
+            Object.values(itemCounts).forEach(item => {
                 const itemElement = document.createElement('div');
                 itemElement.className = 'list-group-item d-flex justify-content-between align-items-center';
+                const totalItemPrice = (item.item_price * item.count).toFixed(2);
                 itemElement.innerHTML = `
-                    <span>${item.item_name}</span>
-                    <span class="badge bg-success">$${item.item_price}</span>
+                    <span>${item.item_name} x${item.count}</span>
+                    <span class="badge bg-success">$${totalItemPrice}</span>
                 `;
                 orderList.appendChild(itemElement);
             });
+
             document.getElementById('total-cost').innerText = totalCost;
         }
     </script>
