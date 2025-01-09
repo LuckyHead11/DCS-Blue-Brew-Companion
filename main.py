@@ -92,7 +92,6 @@ inspirational_quotes = [
     "The best revenge is massive success. - Frank Sinatra",
     "Don't be afraid to give up the good to go for the great. - John D. Rockefeller"
 ]
-
 def get_qod():
     return random.choice(inspirational_quotes)
 
@@ -813,6 +812,7 @@ def items_ordered_reverse():
 
 @app.route('/admin_earnings')
 def admin_earnings():
+    total_earnings = 0
     monthly_earnings = 0
     daily_earnings = 0
     yearly_earings = 0
@@ -829,6 +829,8 @@ def admin_earnings():
             yearly_earings += float(item.item_price)
         if item.item_week == datetime.datetime.now().isocalendar()[1]:
             weekly_earnings += float(item.item_price)
+            
+        total_earnings += float(item.item_price)
 
         items_bought.append(item.item_name)
 
@@ -853,7 +855,8 @@ def admin_earnings():
     daily_earnings = str('{:,.2f}'.format(daily_earnings))
     yearly_earings = str('{:,.2f}'.format(yearly_earings))
     weekly_earnings = str('{:,.2f}'.format(weekly_earnings))
-
+    total_earnings = str('{:,.2f}'.format(total_earnings))
+    
     most_bought_profit = str('{:,.2f}'.format(most_bought_profit))
     least_bought_profit = str('{:,.2f}'.format(least_bought_profit))
     if check_admin():
@@ -861,7 +864,7 @@ def admin_earnings():
                                we=weekly_earnings,
                                best_item=most_bought_name, best_amount=most_bought, best_profit=most_bought_profit,
                                worst_item=least_bought_name, worst_amount=least_bought,
-                               worst_profit=least_bought_profit)
+                               worst_profit=least_bought_profit, te=total_earnings)
     else:
         return redirect("/admin-login")
 
